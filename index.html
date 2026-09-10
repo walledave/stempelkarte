@@ -1,0 +1,1615 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Stempelkarte">
+<meta name="theme-color" content="#003057">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-180.png">
+<title>Stempelkarte</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+:root{
+  --brand:#003057;
+  --brand-ink:#FFFFFF;
+  --ground:#ECF0F3;
+  --surface:#FFFFFF;
+  --surface-2:#F4F7F9;
+  --ink:#0F2438;
+  --muted:#5A6B7B;
+  --line:#D8DFE5;
+  --line-strong:#BCC7D0;
+  --accent:#0089C4;
+  --accent-soft:#E4F5FD;
+  --run:#0089C4;
+  --run-soft:#E1F4FD;
+  --run-ink:#003057;
+  --pause:#8C5E11;
+  --pause-soft:#F6EEDD;
+  --neg:#C62334;
+  --hot:#D9670E;
+  --hot-ink:#FFFFFF;
+  --hot-soft:#FDEFE3;
+  --radius:10px;
+  --shadow:0 1px 2px rgba(22,26,32,.06), 0 8px 24px -16px rgba(22,26,32,.35);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --brand:#003057; --brand-ink:#FFFFFF;
+    --ground:#0C1720; --surface:#12202B; --surface-2:#182936;
+    --ink:#E6EDF3; --muted:#93A4B3; --line:#223746; --line-strong:#33495B;
+    --accent:#35C6F4; --accent-soft:#0C2E3E;
+    --run:#00B8F2; --run-soft:#0B2C3B; --run-ink:#00202F;
+    --pause:#D8A64A; --pause-soft:#2E2718;
+    --neg:#FF6B72;
+    --hot:#F08A3C;
+    --hot-ink:#1A1206;
+    --hot-soft:#33230F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --brand:#003057; --brand-ink:#FFFFFF;
+  --ground:#0C1720; --surface:#12202B; --surface-2:#182936;
+  --ink:#E6EDF3; --muted:#93A4B3; --line:#223746; --line-strong:#33495B;
+  --accent:#35C6F4; --accent-soft:#0C2E3E;
+  --run:#00B8F2; --run-soft:#0B2C3B; --run-ink:#00202F;
+  --pause:#D8A64A; --pause-soft:#2E2718;
+  --neg:#FF6B72;
+  --hot:#F08A3C;
+  --hot-ink:#1A1206;
+  --hot-soft:#33230F;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+body{
+  margin:0; background:var(--ground); color:var(--ink);
+  font-family:"Archivo","Helvetica Neue",Arial,sans-serif;
+  font-size:15px; line-height:1.5; -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:660px;margin:0 auto;padding:28px 20px 64px;display:flex;flex-direction:column;gap:18px}
+.mono{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;font-variant-numeric:tabular-nums}
+
+header.top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;
+  background:var(--brand);color:var(--brand-ink);padding:13px 18px;border-radius:var(--radius)}
+.brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.brand .mark{font-weight:700;font-size:17px;letter-spacing:.01em}
+.brand .sub{font-size:13px;font-weight:500;color:#00B8F2;letter-spacing:.06em;text-transform:uppercase}
+.today{font-size:13px;color:var(--brand-ink);opacity:.85}
+
+.stage{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:24px 22px 20px;display:flex;flex-direction:column;gap:18px}
+.status-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.pill{display:inline-flex;align-items:center;gap:7px;padding:4px 11px 4px 9px;border-radius:999px;font-size:12px;font-weight:600;letter-spacing:.02em;border:1px solid transparent}
+.pill .led{width:8px;height:8px;border-radius:50%;background:currentColor}
+.pill.is-run{color:var(--run);background:var(--run-soft);border-color:color-mix(in srgb, var(--run) 25%, transparent)}
+.pill.is-pause{color:var(--pause);background:var(--pause-soft);border-color:color-mix(in srgb, var(--pause) 25%, transparent)}
+.pill.is-idle{color:var(--muted);background:var(--surface-2);border-color:var(--line)}
+.pill.is-run .led{animation:beat 2s ease-in-out infinite}
+@keyframes beat{0%,100%{opacity:1}50%{opacity:.25}}
+@media (prefers-reduced-motion: reduce){.pill.is-run .led{animation:none}}
+.status-note{font-size:13px;color:var(--muted)}
+
+.clock{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap}
+.clock .big{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:clamp(44px,12vw,64px);font-weight:500;letter-spacing:-.03em;line-height:1}
+.clock .unit{font-size:13px;color:var(--muted);padding-bottom:9px}
+
+.stamp{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;padding:12px 14px;border-radius:8px;background:var(--accent-soft);border:1px solid color-mix(in srgb, var(--accent) 22%, transparent)}
+.stamp .lab{font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;color:var(--accent)}
+.stamp .val{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:26px;font-weight:600;line-height:1.1}
+.stamp .sub{font-size:12.5px;color:var(--muted);flex-basis:100%}
+
+.controls{display:flex;gap:10px;flex-wrap:wrap}
+button{font-family:inherit;font-size:15px;cursor:pointer;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface-2);color:var(--ink);padding:11px 16px;font-weight:600;transition:transform .06s ease, background .15s ease}
+button:active{transform:translateY(1px)}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button[disabled]{opacity:.4;cursor:not-allowed}
+.btn-primary{flex:1 1 220px;background:var(--brand);color:#fff;border-color:var(--brand);font-size:16px;padding:14px 18px}
+.btn-primary.is-run{background:var(--run);border-color:var(--run);color:#fff}
+:root[data-theme="dark"] .btn-primary.is-run,
+:root[data-theme="dark"] .btn-primary{color:#fff}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .btn-primary.is-run{color:var(--run-ink)}
+}
+.kbd{font-family:"IBM Plex Mono",monospace;font-size:11px;border:1px solid var(--line-strong);border-bottom-width:2px;border-radius:4px;padding:1px 5px;color:var(--muted);background:var(--surface-2)}
+.hint{font-size:12px;color:var(--muted);display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(122px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tiles div{background:var(--surface);padding:11px 13px;display:flex;flex-direction:column;gap:3px}
+.tiles .k{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tiles .v{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:19px;font-weight:500}
+.pos{color:var(--run)}
+.negv{color:var(--neg)}
+
+.notice{font-size:13px;padding:9px 12px;border-radius:8px;border-left:3px solid var(--pause);background:var(--pause-soft);color:var(--ink)}
+
+section.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px 20px;display:flex;flex-direction:column;gap:14px}
+.panel h2{margin:0;font-size:14px;font-weight:700;letter-spacing:.01em}
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+.seg-list{display:flex;flex-direction:column;gap:8px}
+.seg{display:flex;align-items:center;gap:9px;flex-wrap:wrap;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.seg .lbl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.seg .sum{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:14px;color:var(--muted);margin-left:auto}
+.seg.open{border-color:color-mix(in srgb, var(--run) 45%, var(--line));background:var(--run-soft)}
+input[type="time"],input[type="date"],input[type="number"]{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);color-scheme:light dark}
+input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.icon-btn{padding:5px 9px;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border-color:transparent}
+.icon-btn:hover{color:var(--accent);border-color:var(--line)}
+.empty{font-size:13px;color:var(--muted);font-style:italic}
+.small-btn{padding:7px 12px;font-size:13px}
+.summary-line{font-size:13px;color:var(--muted);display:flex;gap:16px;flex-wrap:wrap;padding-top:2px}
+.summary-line b{font-weight:600;color:var(--ink);font-family:"IBM Plex Mono",monospace}
+.details-body{display:flex;flex-direction:column;gap:14px}
+
+/* iPhone und schmale Bildschirme */
+@media (max-width: 560px){
+  .wrap{padding:calc(10px + env(safe-area-inset-top)) calc(12px + env(safe-area-inset-right))
+        calc(24px + env(safe-area-inset-bottom)) calc(12px + env(safe-area-inset-left));gap:12px}
+  header.top{padding:11px 14px}
+  .brand .mark{font-size:16px}
+  .brand .sub{font-size:11px}
+  .today{font-size:12px;width:100%}
+  .stage{padding:16px 14px 16px;gap:14px}
+  .status-row .status-note{order:3;flex-basis:100%;margin-top:-4px}
+  .clock .big{font-size:clamp(40px,15vw,58px)}
+  .controls{gap:8px}
+  .btn-primary{flex:1 1 100%;padding:16px 18px;font-size:17px}
+  #btnEnd{flex:1 1 100%;padding:14px 18px;font-size:16px}
+  .tiles{grid-template-columns:1fr 1fr}
+  .pchip{padding:9px 13px;font-size:14px}
+  .komm-add input{width:100%}
+  section.panel{padding:14px 14px 16px}
+  .day-row{grid-template-columns:78px 1fr auto;gap:8px}
+  .day-row .bar{display:none}
+  .field{grid-template-columns:1fr}
+  .field .in{white-space:normal}
+  .seg{gap:7px}
+  .seg .sum{margin-left:0}
+}
+button, .pchip, input, select{touch-action:manipulation}
+html{-webkit-text-size-adjust:100%}
+.komm{display:flex;flex-direction:column;gap:8px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.komm-head{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.komm-head .info{letter-spacing:0;text-transform:none;font-weight:500;font-size:11.5px}
+.pbar{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pchip{display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:999px;border:1px solid var(--line-strong);background:var(--surface);color:var(--ink);font-size:13px;font-weight:600;line-height:1.2}
+.pchip .pt{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:12px;font-weight:500;color:var(--muted)}
+.pchip:hover{border-color:var(--accent)}
+.pchip.is-active{border-color:var(--hot);background:var(--hot-soft);color:var(--hot)}
+.pchip.is-active .pt{color:var(--hot);opacity:.8}
+.pchip.is-running{
+  border-color:var(--hot);
+  background:var(--hot);
+  color:var(--hot-ink);
+  box-shadow:0 0 0 3px color-mix(in srgb, var(--hot) 30%, transparent);
+}
+.pchip.is-running .pt{color:var(--hot-ink);opacity:.85}
+.pchip.is-running:hover{border-color:var(--hot)}
+.pchip .x{font-weight:700;opacity:.65;margin-left:1px}
+.pchip.tool{padding:6px 10px;color:var(--muted);border-style:dashed;font-weight:600;font-size:12.5px}
+.komm-add{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+#syncBox{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--line);
+  border-radius:8px;background:var(--surface-2)}
+#syncBox input{width:100%;font-family:inherit;font-size:14px;padding:8px 9px;border:1px solid var(--line-strong);
+  border-radius:6px;background:var(--surface);color:var(--ink)}
+#syncBox .zeile{display:flex;gap:8px;flex-wrap:wrap}
+.sync-status{font-size:12.5px;color:var(--muted)}
+.sync-status.ok{color:var(--run)}
+.sync-status.warn{color:var(--neg)}
+#importText{width:100%;min-height:80px;font-family:"IBM Plex Mono",monospace;font-size:12px;
+  padding:8px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);
+  color:var(--ink);resize:vertical}
+.komm-add input{width:160px;font-size:14px;font-weight:600;padding:6px 8px;font-family:inherit}
+.split{display:flex;gap:8px;flex-wrap:wrap;font-size:12.5px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:3px 9px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2)}
+.chip b{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-weight:600}
+.chip.now{border-color:var(--run);color:var(--run);background:var(--run-soft)}
+.seg input.komm-cell{width:96px;font-size:13px}
+.mode-btn{margin-left:auto;padding:4px 10px;font-size:12px;font-weight:600;color:var(--muted);background:var(--surface-2);border-color:var(--line)}
+.mode-btn + .mode-btn{margin-left:6px}
+body.compact .mode-btn{padding:3px 8px;font-size:11px}
+.mode-btn:hover{color:var(--accent)}
+
+/* Kompaktansicht fuer das kleine Desktop-Fenster */
+body.compact{background:var(--surface)}
+body.compact .top,
+body.compact .stamp,
+body.compact .hint,
+body.compact section.panel,
+body.compact footer{display:none}
+body.compact .wrap{padding:10px;gap:0;max-width:none}
+body.compact .stage{padding:12px 14px 14px;gap:11px;box-shadow:none;border:none;border-radius:0;
+  border-top:3px solid var(--brand)}
+body.compact .clock{gap:9px}
+body.compact .clock .big{font-size:clamp(34px,13vw,46px)}
+body.compact .clock .unit{font-size:11px;padding-bottom:6px}
+body.compact .tiles{grid-template-columns:1fr 1fr}
+body.compact .tiles div:nth-child(n+3){display:none}
+body.compact .split{display:none}
+body.compact .komm-head{display:none}
+body.compact .komm{padding:8px 9px;gap:6px}
+body.compact .pchip{padding:5px 9px;font-size:12.5px}
+body.compact .tiles div{padding:8px 11px}
+body.compact .tiles .v{font-size:17px}
+body.compact .btn-primary{flex:1 1 130px;font-size:15px;padding:11px 14px}
+body.compact #btnEnd{font-size:14px;padding:11px 13px}
+body.compact .status-note{font-size:12px}
+
+.month-nav{display:flex;align-items:center;gap:8px}
+.month-nav button{padding:4px 10px;font-size:14px}
+.days{display:flex;flex-direction:column;gap:2px;max-height:340px;overflow-y:auto;margin:0 -6px;padding:0 6px}
+.day-row{display:grid;grid-template-columns:92px 1fr auto auto;align-items:center;gap:10px;padding:7px 8px;border-radius:6px;border:none;background:transparent;text-align:left;font-size:13px;font-weight:500;width:100%;color:var(--ink)}
+.day-row:hover{background:var(--surface-2)}
+.day-row.sel{background:var(--surface-2);box-shadow:inset 2px 0 0 var(--accent)}
+.day-row .dt{color:var(--muted);font-family:"IBM Plex Mono",monospace;font-size:12px}
+.bar{height:6px;border-radius:3px;background:var(--line);position:relative;overflow:hidden;min-width:40px}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--run);border-radius:3px}
+.bar i.over{background:var(--accent)}
+.day-row .ist{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+.day-row .df{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:12px;min-width:52px;text-align:right}
+
+.settings{display:flex;flex-direction:column;gap:16px}
+.field{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px 12px}
+.field label{font-size:13.5px;font-weight:500}
+.field .in{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted);white-space:nowrap}
+.field .desc{grid-column:1 / -1;font-size:12px;color:var(--muted)}
+.rule-grid{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2)}
+.rule-grid span{font-size:13px}
+details>summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--muted);list-style:none}
+details>summary::-webkit-details-marker{display:none}
+details>summary::before{content:"▸ ";font-size:11px}
+details[open]>summary::before{content:"▾ "}
+details[open]>summary{margin-bottom:14px}
+footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
+#printArea{display:none}
+@media print{
+  body{background:#fff;color:#000}
+  .wrap,.toast{display:none !important}
+  #printArea{display:block;padding:0;color:#000;font-size:11pt}
+  #printArea *{color:#000}
+  #printArea h1{font-size:16pt;margin:0 0 2mm}
+  #printArea h2{font-size:12pt;margin:6mm 0 2mm}
+  #printArea .meta{font-size:10pt;margin-bottom:5mm}
+  #printArea table{width:100%;border-collapse:collapse;font-size:9.5pt}
+  #printArea th,#printArea td{border:0.4pt solid #999;padding:1.6mm 2mm;text-align:left;vertical-align:top}
+  #printArea th{background:#eee;font-weight:700}
+  #printArea td.num,#printArea th.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  #printArea tr.sum td{font-weight:700;background:#f2f2f2}
+  #printArea .sign{margin-top:14mm;font-size:10pt;display:flex;gap:20mm}
+  #printArea .sign div{border-top:0.4pt solid #000;padding-top:1.5mm;min-width:60mm}
+  @page{margin:15mm}
+}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:var(--surface);padding:9px 16px;border-radius:999px;font-size:13px;font-weight:600;box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .2s ease}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand"><span class="mark">Müller &amp; Sohn</span><span class="sub">Stempelkarte</span></div>
+    <div class="today mono" id="todayLine"></div>
+  </header>
+
+  <div class="stage">
+    <div class="status-row">
+      <span class="pill is-idle" id="statusPill"><span class="led"></span><span id="statusText">Noch nicht gestartet</span></span>
+      <span class="status-note" id="statusNote"></span>
+      <button class="mode-btn" id="btnTheme" title="Zwischen hellem und dunklem Design wechseln">Dunkel</button>
+      <button class="mode-btn" id="btnCompact" style="margin-left:0" title="Kleines Fenster für den Desktop">Kompakt</button>
+    </div>
+
+    <div class="clock">
+      <span class="big" id="clockBig">0:00</span>
+      <span class="unit" id="clockUnit">Std. gearbeitet heute</span>
+    </div>
+
+    <div class="stamp" id="stampBox" hidden>
+      <span class="lab" id="stampLab">Ausstempeln um</span>
+      <span class="val mono" id="stampVal">--:--</span>
+      <span class="sub" id="stampSub"></span>
+    </div>
+
+    <div class="controls">
+      <button class="btn-primary" id="btnPrimary">Arbeit starten</button>
+      <button id="btnEnd">Feierabend</button>
+    </div>
+
+    <div class="komm">
+      <div class="komm-head">
+        <span>Kom.-Nr.</span>
+        <span class="info" id="kommInfo"></span>
+      </div>
+      <div class="pbar" id="pBar"></div>
+      <div class="komm-add" id="kommAdd" hidden>
+        <input id="kommNeu" placeholder="Nummer, z. B. 28674" autocomplete="off" spellcheck="false">
+        <button class="small-btn" id="btnKommAdd">Anlegen</button>
+        <button class="small-btn" id="btnKommAbbr">Abbrechen</button>
+      </div>
+      <datalist id="kommListe"></datalist>
+    </div>
+
+    <div class="tiles">
+      <div><span class="k">Arbeitszeit</span><span class="v" id="dNet">0:00</span></div>
+      <div><span class="k">Pause</span><span class="v" id="dPause">0:00</span></div>
+      <div><span class="k">Differenz zum Soll</span><span class="v" id="dDiff">0:00</span></div>
+    </div>
+  </div>
+
+  <section class="panel">
+    <details open id="monthDetails">
+      <summary>Monatsbilanz</summary>
+      <div class="details-body">
+        <div class="panel-head">
+          <h2 id="monthTitle">Monat</h2>
+          <div class="month-nav">
+            <button id="prevMonth" aria-label="Vorheriger Monat">←</button>
+            <button id="nextMonth" aria-label="Nächster Monat">→</button>
+          </div>
+        </div>
+        <div class="tiles">
+          <div><span class="k">Arbeitszeit</span><span class="v" id="mIst">0:00</span></div>
+          <div><span class="k">Soll</span><span class="v" id="mSoll">0:00</span></div>
+          <div><span class="k">Saldo Monat</span><span class="v" id="mDiff">0:00</span></div>
+        </div>
+        <div class="days" id="dayList"></div>
+        <div class="tiles">
+          <div><span class="k">Gleitzeitkonto</span><span class="v" id="totalOver">0:00</span></div>
+          <div id="payoutTile" hidden><span class="k">Zur Auszahlung</span><span class="v" id="payout">0:00</span></div>
+          <div><span class="k">Arbeitstage</span><span class="v" id="totalDays">0</span></div>
+        </div>
+        <h2 style="margin-top:4px">Kommissionsnummern im Monat</h2>
+        <div class="split" id="monthSplit"></div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="small-btn" id="btnPrint">Nachweis drucken / als PDF</button>
+          <button class="small-btn" id="btnCopy">Monat als Tabelle kopieren</button>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <details id="segDetails">
+      <summary>Gebuchte Zeiten anzeigen &amp; korrigieren</summary>
+      <div class="details-body">
+        <div class="panel-head">
+          <h2>Zeiten am</h2>
+          <input type="date" id="editDate">
+        </div>
+        <div class="seg-list" id="segList"></div>
+        <div class="summary-line" id="editSummary"></div>
+        <div><button class="small-btn" id="btnAddSeg">+ Zeitraum ergänzen</button></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel">
+    <details>
+      <summary>Einstellungen &amp; Daten</summary>
+      <div class="settings">
+        <div class="field">
+          <label for="setTarget">Arbeitszeit pro Tag</label>
+          <span class="in"><input type="number" id="setTarget" min="0" max="24" step="0.25" style="width:78px"> Stunden</span>
+          <span class="desc">Dein Tagessoll, z.&nbsp;B. 8 oder 7,7. Nur Tage mit erfassten Zeiten zählen ins Soll — Wochenende und Urlaub lässt du leer.</span>
+        </div>
+        <div class="field">
+          <label for="setRound">Rundung wie im Firmensystem</label>
+          <span class="in"><input type="number" id="setRound" min="0" max="60" step="5" style="width:78px"> Minuten</span>
+          <span class="desc">Kommen und Gehen werden auf die nächste Viertelstunde gerundet, so wie im Firmensystem. 0 = keine Rundung.</span>
+        </div>
+        <div class="field">
+          <label>Pausenregelung</label>
+          <span class="in">fest hinterlegt</span>
+          <span class="desc">Ab 3,5 Std. 15 Min., ab 6 Std. 30 Min., ab 7 Std. 45 Min. Eigene Pausen werden angerechnet.</span>
+        </div>
+        <div class="field">
+          <label for="setCarry">Überstunden-Startsaldo</label>
+          <span class="in"><input type="number" id="setCarry" step="0.25" style="width:78px"> Stunden</span>
+          <span class="desc">Was vor der ersten Nutzung schon auf dem Konto war. Minuszahlen sind erlaubt.</span>
+        </div>
+        <div class="field">
+          <label for="setCap">Konto-Obergrenze</label>
+          <span class="in"><input type="number" id="setCap" min="0" step="0.25" style="width:78px"> Stunden</span>
+          <span class="desc">Alles darüber wird separat als „Zur Auszahlung" ausgewiesen. 0 = keine Grenze.</span>
+        </div>
+        <div class="field">
+          <label for="setName">Name auf dem Ausdruck</label>
+          <span class="in"><input type="text" id="setName" placeholder="Vor- und Nachname" style="width:190px;font-family:inherit"></span>
+          <span class="desc">Erscheint oben auf dem Arbeitszeitnachweis für die Personalabteilung.</span>
+        </div>
+        <div class="field">
+          <label>Abgleich mit iPhone / PC</label>
+          <span class="in"><span class="sync-status" id="syncStatus">nicht eingerichtet</span></span>
+          <span class="desc">Legt deine Zeiten in einem <strong>privaten</strong> GitHub-Repository ab, damit PC und Handy denselben Stand haben. Der Zugangsschlüssel bleibt auf diesem Gerät.</span>
+        </div>
+        <div id="syncBox">
+          <input id="syncUser" placeholder="GitHub-Benutzername" autocomplete="off" spellcheck="false">
+          <input id="syncRepo" placeholder="Name des privaten Repositorys, z. B. stempelkarte-daten" autocomplete="off" spellcheck="false">
+          <input id="syncToken" type="password" placeholder="Zugangsschlüssel (github_pat_…)" autocomplete="off" spellcheck="false">
+          <div class="zeile">
+            <button class="small-btn" id="btnSyncSave">Verbinden &amp; abgleichen</button>
+            <button class="small-btn" id="btnSyncNow">Jetzt abgleichen</button>
+            <button class="small-btn" id="btnSyncOff">Trennen</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>Sicherung</label>
+          <span class="in">
+            <button class="small-btn" id="btnExportAll">Alle Daten kopieren</button>
+            <button class="small-btn" id="btnImportOpen">Daten einfügen</button>
+          </span>
+          <span class="desc">„Kopieren" legt deinen kompletten Datenbestand als Text in die Zwischenablage — in eine Datei einfügen und aufbewahren. „Einfügen" stellt ihn wieder her, z.&nbsp;B. nach einem Umzug auf einen anderen Rechner.</span>
+        </div>
+        <div id="importBox" hidden style="display:flex;flex-direction:column;gap:8px">
+          <textarea id="importText" placeholder="Gesicherten Text hier einfügen (Strg+V)" spellcheck="false"></textarea>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="small-btn" id="btnImportDo">Wiederherstellen</button>
+            <button class="small-btn" id="btnImportAbbr">Abbrechen</button>
+          </div>
+          <span class="desc" style="color:var(--neg)">Achtung: Das ersetzt alle Zeiten, die aktuell in diesem Fenster gespeichert sind.</span>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <footer>
+    <div id="storeInfo"></div>
+    <div id="syncInfo"></div>
+  </footer>
+</div>
+<div id="printArea"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+  var LS_KEY = "stempelkarte.v1";
+  var DEF = { v:2, updatedAt:0,
+    settings:{ targetH:8, carryH:60, capH:60, lastK:"", name:"", komList:[], roundMin:15 },
+    days:{} };
+  var state = JSON.parse(JSON.stringify(DEF));
+
+  function pad(n){ return (n<10?"0":"")+n; }
+  function iso(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+  function parseIso(s){ var p=s.split("-"); return new Date(+p[0], +p[1]-1, +p[2]); }
+  function hm2min(s){
+    if(!s) return null;
+    var p = String(s).split(":");
+    var m = (+p[0])*60 + (+p[1]) + (p.length > 2 ? (+p[2])/60 : 0);
+    return isNaN(m) ? null : m;
+  }
+  function short(s){ return s ? String(s).slice(0,5) : ""; }
+  function kom(seg){ return (seg && seg.k ? String(seg.k) : "").trim(); }
+  function komLabel(k){ return k ? k : "ohne Nummer"; }
+  function esc(t){ return String(t).replace(/[&<>"]/g, function(c){
+    return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c]; }); }
+  function dez(min){ return (Math.round(min/60*100)/100).toFixed(2).replace(".", ","); }
+  function min2hm(m){ m=Math.round(m); return pad(Math.floor(m/60))+":"+pad(m%60); }
+  function clockAt(min, up){
+    min = up ? Math.ceil(min - 0.0001) : Math.floor(min + 0.0001);
+    var next = min >= 1440;
+    min = ((min%1440)+1440)%1440;
+    return pad(Math.floor(min/60))+":"+pad(min%60)+(next?" (+1 Tag)":"");
+  }
+  function clock(min){ return clockAt(min, false); }
+  function nowHM(){ var d=new Date(); return pad(d.getHours())+":"+pad(d.getMinutes()); }
+  function nowStamp(){ var d=new Date(); return pad(d.getHours())+":"+pad(d.getMinutes())+":"+pad(d.getSeconds()); }
+  function nowMin(){ var d=new Date(); return d.getHours()*60+d.getMinutes()+d.getSeconds()/60; }
+  function fmtDur(sec, withSec){
+    var neg = sec < 0; sec = Math.abs(sec);
+    var h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=Math.floor(sec%60);
+    return (neg?"−":"")+h+":"+pad(m)+(withSec?":"+pad(s):"");
+  }
+  function fmtSigned(min){
+    var neg = min < -0.5, a = Math.abs(Math.round(min));
+    return (neg?"−":"+")+Math.floor(a/60)+":"+pad(a%60);
+  }
+  var WD=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
+  var MN=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+
+  function targetMin(){ return Math.round(state.settings.targetH*60); }
+  function todayKey(){ return iso(new Date()); }
+  function day(key, create){ if(!state.days[key] && create) state.days[key]={segs:[],closed:false}; return state.days[key]; }
+  function hasTimes(d){ return !!(d && d.segs && d.segs.length); }
+  function openSeg(d){ if(!d||!d.segs) return -1;
+    for(var i=0;i<d.segs.length;i++){ if(!d.segs[i].e) return i; } return -1; }
+
+  /* Gestempelte Arbeitszeit in Minuten (ohne Pausenabzug). */
+  function rawMin(key){
+    var d = state.days[key]; if(!d) return 0;
+    var total = 0, today = todayKey();
+    for(var i=0;i<d.segs.length;i++){
+      var s = hm2min(d.segs[i].s); if(s===null) continue;
+      if(d.segs[i].e){ var e = hm2min(d.segs[i].e); if(e===null) continue; if(e<s) e+=1440; total += e-s; }
+      else if(key===today){ var diff = nowMin()-s; if(diff>0) total += diff; }
+    }
+    return total;
+  }
+  /* Rundung wie im Firmensystem: nur Tagesbeginn und Tagesende. */
+  function raster(){
+    var r = state.settings.roundMin;
+    return (typeof r === "number" && r > 0) ? r : 0;
+  }
+  function rundeM(m){ var r = raster(); return r ? Math.round(m/r)*r : m; }
+  /* Stempelzeiten: Weniger als 5 Minuten neben einer Viertelstunde zaehlen
+     zu dieser (05:49 -> 05:45). Ab 5 Minuten Abstand ist das Fenster vorbei
+     und es wird zulasten der Arbeitszeit gerundet — Kommen nach oben,
+     Gehen nach unten: 05:50 -> 06:00, 15:23 -> 15:15, 15:42 -> 15:45. */
+  var TOLERANZ = 5;
+  function rundeZeit(m, istBeginn){
+    var r = raster(); if(!r) return m;
+    var tol = Math.min(TOLERANZ, Math.floor(r/2));
+    var unten = Math.floor(m/r)*r, oben = unten + r;
+    if(m - unten < tol) return unten;
+    if(oben - m < tol) return oben;
+    return istBeginn ? oben : unten;
+  }
+
+  /* Die Bloecke eines Tages so, wie sie gebucht werden:
+     erster Beginn und letztes Ende auf das Raster gerundet, Pausen unveraendert. */
+  function bookedSegs(key){
+    var d = state.days[key]; if(!hasTimes(d)) return [];
+    var heute = key === todayKey();
+    var list = d.segs.filter(function(x){ return x.s; }).slice()
+      .sort(function(a,b){ return hm2min(a.s) - hm2min(b.s); });
+    var out = [];
+    list.forEach(function(seg){
+      var a = hm2min(seg.s);
+      var b = seg.e ? hm2min(seg.e) : (heute ? nowMin() : null);
+      if(b === null) return;
+      if(b < a) b += 1440;
+      out.push({ k: kom(seg), a: a, b: b, offen: !seg.e });
+    });
+    if(raster() && out.length){
+      out[0].a = rundeZeit(out[0].a, true);
+      /* Auch der laufende Block wird so gebucht, wie er bei sofortigem
+         Feierabend zaehlen wuerde — die gebuchte Zeit bleibt im Raster. */
+      var letzte = out[out.length-1];
+      letzte.b = rundeZeit(letzte.b, false);
+    }
+    return out;
+  }
+  /* Pausenregelung Müller & Sohn: ab 3,5 Std. 15 Min., ab 6 Std. 30 Min.,
+     ab 7 Std. 45 Min. Selbst gestempelte Pausen werden angerechnet. */
+  var PAUSENREGEL = [[420, 45], [360, 30], [210, 15]];
+  function pflichtPause(arbeitMin){
+    for(var i=0;i<PAUSENREGEL.length;i++){
+      if(arbeitMin >= PAUSENREGEL[i][0]) return PAUSENREGEL[i][1];
+    }
+    return 0;
+  }
+  /* Noch offene Pflichtpause — was beim Feierabend abgezogen wird. */
+  function pflichtOffen(key){
+    var roh = bookedRoh(key);
+    if(roh <= 0) return 0;
+    return Math.max(0, pflichtPause(roh) - pauseMin(key));
+  }
+  /* Verrechnet wird erst mit dem Feierabend: solange der Tag laeuft, zeigt
+     das Tool die tatsaechlich gearbeitete Zeit. */
+  function abzugMin(key){
+    var d = state.days[key];
+    if(key === todayKey() && d && !d.closed) return 0;
+    return pflichtOffen(key);
+  }
+  /* Pause inklusive der gerade laufenden — nur fuer die Vorausberechnung. */
+  function pauseLive(key){
+    var p = pauseMin(key), d = state.days[key];
+    if(d && key === todayKey() && !d.closed && openSeg(d) < 0){
+      var last = d.segs[d.segs.length-1];
+      if(last && last.e){ var run = nowMin() - hm2min(last.e); if(run > 0) p += run; }
+    }
+    return p;
+  }
+  /* Gestempelte Zeit, die noetig ist, damit nach Pausenabzug das Soll steht. */
+  function neededBooked(key){
+    var t = targetMin(), taken = pauseLive(key);
+    var stufen = [[0,0],[210,15],[360,30],[420,45]];
+    for(var i=0;i<stufen.length;i++){
+      var brutto = t + Math.max(0, stufen[i][1] - taken);
+      var lo = stufen[i][0];
+      var hi = (i+1 < stufen.length) ? stufen[i+1][0] : Infinity;
+      if(brutto >= lo && brutto < hi) return brutto;
+    }
+    return t + Math.max(0, 45 - taken);
+  }
+
+  function bookedRoh(key){
+    var t = 0;
+    bookedSegs(key).forEach(function(x){ if(x.b > x.a) t += x.b - x.a; });
+    return t;
+  }
+  /* Die gebuchte Zeit kennt nur volle Viertelstunden — auch waehrend
+     der Tag noch laeuft. Sie zeigt, was bei sofortigem Feierabend zaehlt. */
+  function bookedMin(key){
+    var t = Math.max(0, bookedRoh(key) - abzugMin(key));
+    return raster() ? rundeM(t) : t;
+  }
+  function buchStart(key){ var o = bookedSegs(key); return o.length ? o[0].a : null; }
+  function buchEnde(key){
+    var o = bookedSegs(key); if(!o.length) return null;
+    var l = o[o.length-1];
+    return l.offen ? null : l.b;
+  }
+
+  /* Dauer eines einzelnen Zeitblocks in Minuten. */
+  function segMin(seg, key){
+    var a = hm2min(seg.s); if(a === null) return 0;
+    if(seg.e){ var b = hm2min(seg.e); if(b === null) return 0; if(b < a) b += 1440; return b - a; }
+    if(key === todayKey()){ var d = nowMin() - a; return d > 0 ? d : 0; }
+    return 0;
+  }
+  /* Arbeitszeit je Kommissionsnummer ueber die angegebenen Tage. */
+  function projekte(keys){
+    var map = {}, reihe = [];
+    keys.forEach(function(key){
+      var segs = bookedSegs(key);
+      if(!segs.length) return;
+      /* Rundungsdifferenz des Tages dem letzten Block zuschlagen,
+         damit die Aufteilung genau die Tagessumme ergibt. */
+      var korrektur = netMin(key) - bookedRoh(key);
+      segs.forEach(function(x, i){
+        var m = Math.max(0, x.b - x.a);
+        if(i === segs.length - 1) m += korrektur;
+        if(m <= 0 && !x.offen) return;
+        if(!(x.k in map)){ map[x.k] = 0; reihe.push(x.k); }
+        map[x.k] += Math.max(0, m);
+      });
+    });
+    reihe.sort(function(a,b){ return map[b] - map[a]; });
+    return reihe.map(function(k){ return { k:k, min:map[k] }; });
+  }
+  /* Fuer alle Auswertungen zaehlt die gebuchte Zeit (mit Rundung),
+     die grosse Uhr zeigt weiterhin die echte gestempelte Zeit. */
+  function netMin(key){ return bookedMin(key); }
+  /* Pausenzeit: die Lücken zwischen den Blöcken, plus die gerade laufende Pause. */
+  function pauseMin(key){
+    var d = state.days[key]; if(!hasTimes(d)) return 0;
+    var list = d.segs.filter(function(x){ return x.s; })
+      .slice().sort(function(a,b){ return hm2min(a.s)-hm2min(b.s); });
+    var p = 0;
+    for(var i=1;i<list.length;i++){
+      if(!list[i-1].e) continue;
+      var gap = hm2min(list[i].s) - hm2min(list[i-1].e);
+      if(gap > 0) p += gap;
+    }
+    return p;
+  }
+  /* Uhrzeit (Minuten seit Mitternacht), zu der das Tagessoll voll ist. */
+  /* Uhrzeit, zu der die reine Arbeitszeit das Tagessoll erreicht. */
+  function sollVollAt(key){
+    var bs = buchStart(key); if(bs === null) return null;
+    return bs + targetMin() + pauseLive(key);
+  }
+  /* Uhrzeit zum Ausstempeln: Tagessoll plus noch fehlende Pflichtpause. */
+  function stampOutAt(key){
+    var d = state.days[key]; if(!hasTimes(d)) return null;
+    if(d.closed) return null;
+    var bs = buchStart(key); if(bs === null) return null;
+    var ziel = bs + neededBooked(key) + pauseLive(key);
+    return raster() ? Math.ceil(ziel/raster())*raster() : ziel;
+  }
+  function lastEnd(key){
+    var d = state.days[key]; if(!hasTimes(d)) return null;
+    var last = d.segs[d.segs.length-1];
+    return last && last.e ? hm2min(last.e) : null;
+  }
+
+  /* ---------- Speichern ---------- */
+  function migrate(p){
+    if(!p || !p.days) return null;
+    var s = p.settings || {};
+    if(!p.v || p.v < 2){
+      var t = typeof s.target === "number" ? s.target/60 : 8;
+      var c = typeof s.carry === "number" && s.carry !== 0 ? s.carry/60 : 60;
+      p.settings = { targetH:t, carryH:c, capH:60, lastK:"", name:"", komList:[], roundMin:15 };
+      p.v = 2;
+    } else {
+      p.settings = Object.assign({}, DEF.settings, s);
+      p.settings.komList = (s.komList || []).slice();
+    }
+    return p;
+  }
+  function load(){
+    var raw = null;
+    try { raw = localStorage.getItem(LS_KEY); } catch(e){}
+    if(raw){
+      try { var p = migrate(JSON.parse(raw)); if(p) state = p; } catch(e){}
+    }
+    knoepfeNachziehen();
+  }
+  /* Nummern, die schon gebucht wurden, bekommen automatisch einen Knopf */
+  function knoepfeNachziehen(){
+    if(!state.settings.komList) state.settings.komList = [];
+    var da = {};
+    state.settings.komList.forEach(function(n){ da[n] = 1; });
+    Object.keys(state.days).sort().forEach(function(tag){
+      (state.days[tag].segs || []).forEach(function(seg){
+        var n = kom(seg);
+        if(n && !da[n]){ da[n] = 1; state.settings.komList.push(n); }
+      });
+    });
+  }
+  function stempel(alt){ return Math.max(Date.now(), (alt || 0) + 1); }
+  function save(key){
+    if(key && state.days[key]) state.days[key].u = stempel(state.days[key].u);
+    state.updatedAt = Date.now();
+    try { localStorage.setItem(LS_KEY, JSON.stringify(state)); }
+    catch(e){ toast("Speichern nicht möglich — Browserdaten prüfen"); }
+    syncSpaeter();
+  }
+  function saveSettings(){
+    state.settingsU = stempel(state.settingsU);
+    save();
+  }
+  /* Ein geleerter Tag bleibt als Markierung stehen, damit die Loeschung
+     auch auf dem anderen Geraet ankommt. */
+  function leere(key){
+    var alt = state.days[key] ? state.days[key].u : 0;
+    state.days[key] = { segs: [], closed: false, u: stempel(alt) };
+  }
+  function setStoreInfo(){
+    document.getElementById("storeInfo").textContent = syncCfg
+      ? "Deine Zeiten liegen auf diesem Gerät und in deinem privaten GitHub-Repository — sonst nirgendwo."
+      : "Deine Zeiten bleiben ausschließlich in diesem Browser. Lösche die Browserdaten für diese Seite nicht; für eine Sicherung nutze „Alle Daten kopieren\u201C.";
+  }
+
+  /* ---------- Abgleich über ein privates GitHub-Repository ---------- */
+  var SYNC_KEY = "stempelkarte.sync";
+  var syncCfg = null, syncLaeuft = false, syncNochmal = false, syncTimer = null;
+
+  function ladeSyncCfg(){
+    try {
+      var roh = localStorage.getItem(SYNC_KEY);
+      syncCfg = roh ? JSON.parse(roh) : null;
+    } catch(e){ syncCfg = null; }
+    if(syncCfg && (!syncCfg.user || !syncCfg.repo || !syncCfg.token)) syncCfg = null;
+  }
+  function speichereSyncCfg(){
+    try {
+      if(syncCfg) localStorage.setItem(SYNC_KEY, JSON.stringify(syncCfg));
+      else localStorage.removeItem(SYNC_KEY);
+    } catch(e){}
+  }
+  function b64enc(txt){ return btoa(unescape(encodeURIComponent(txt))); }
+  function b64dec(b64){ return decodeURIComponent(escape(atob(String(b64).replace(/\s/g, "")))); }
+
+  function ghUrl(){
+    return "https://api.github.com/repos/" + encodeURIComponent(syncCfg.user)
+      + "/" + encodeURIComponent(syncCfg.repo) + "/contents/zeiten.json";
+  }
+  function ghKopf(){
+    return {
+      "Authorization": "Bearer " + syncCfg.token,
+      "Accept": "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      "Content-Type": "application/json"
+    };
+  }
+  function setSync(text, art){
+    var el = document.getElementById("syncStatus");
+    if(el){ el.textContent = text; el.className = "sync-status" + (art ? " " + art : ""); }
+    var f = document.getElementById("syncInfo");
+    if(f) f.textContent = syncCfg ? "Abgleich: " + text : "";
+  }
+  function uhrzeitJetzt(){
+    var d = new Date();
+    return pad(d.getHours()) + ":" + pad(d.getMinutes());
+  }
+
+  /* Zusammenführen: pro Tag gewinnt der jüngere Stand, Nummern werden vereint. */
+  function mergeState(lokal, fern){
+    var au = lokal.settingsU || 0, bu = fern.settingsU || 0;
+    var basis = (bu > au) ? fern : lokal;
+    var out = { v:2, updatedAt: Date.now(), settingsU: Math.max(au, bu), settings: {}, days: {} };
+    out.settings = JSON.parse(JSON.stringify(basis.settings || {}));
+    var liste = (out.settings.komList || []).slice();
+    [lokal, fern].forEach(function(q){
+      var kl = (q.settings && q.settings.komList) || [];
+      kl.forEach(function(n){ if(liste.indexOf(n) < 0) liste.push(n); });
+    });
+    out.settings.komList = liste;
+
+    var keys = {};
+    Object.keys(lokal.days || {}).forEach(function(k){ keys[k] = 1; });
+    Object.keys(fern.days || {}).forEach(function(k){ keys[k] = 1; });
+    Object.keys(keys).forEach(function(k){
+      var x = (lokal.days || {})[k], y = (fern.days || {})[k];
+      if(!x){ out.days[k] = y; return; }
+      if(!y){ out.days[k] = x; return; }
+      out.days[k] = ((y.u || 0) > (x.u || 0)) ? y : x;
+    });
+    return out;
+  }
+
+  function lokalNeuer(fern){
+    if(!fern || !fern.days) return true;
+    if((state.settingsU || 0) > (fern.settingsU || 0)) return true;
+    for(var k in state.days){
+      if(!Object.prototype.hasOwnProperty.call(state.days, k)) continue;
+      var f = fern.days[k];
+      if(!f || (state.days[k].u || 0) > (f.u || 0)) return true;
+    }
+    return false;
+  }
+
+  function syncSpaeter(){
+    if(!syncCfg) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(function(){ syncJetzt(); }, 4000);
+  }
+
+  function syncJetzt(){
+    if(!syncCfg){ setSync("nicht eingerichtet"); return; }
+    if(syncLaeuft){ syncNochmal = true; return; }
+    syncLaeuft = true;
+    setSync("gleicht ab …");
+
+    var fern = null, sha = null, mussHoch = false;
+
+    fetch(ghUrl(), { headers: ghKopf(), cache: "no-store" })
+      .then(function(r){
+        if(r.status === 404) return null;
+        if(r.status === 401) throw new Error("Zugangsschlüssel ungültig");
+        if(r.status === 403) throw new Error("Kein Zugriff — Rechte des Schlüssels prüfen");
+        if(!r.ok) throw new Error("GitHub meldet Fehler " + r.status);
+        return r.json();
+      })
+      .then(function(daten){
+        if(daten){
+          sha = daten.sha;
+          try { fern = JSON.parse(b64dec(daten.content || "")); } catch(e){ fern = null; }
+          if(fern && !fern.days) fern = null;
+        }
+        mussHoch = lokalNeuer(fern);
+        if(fern){
+          var m = migrate(fern) || fern;
+          state = mergeState(state, m);
+          knoepfeNachziehen();
+          try { localStorage.setItem(LS_KEY, JSON.stringify(state)); } catch(e){}
+          renderAll();
+        }
+        if(!mussHoch) return null;
+        var koerper = {
+          message: "Stempelkarte " + new Date().toISOString().slice(0, 16).replace("T", " "),
+          content: b64enc(JSON.stringify(state))
+        };
+        if(sha) koerper.sha = sha;
+        return fetch(ghUrl(), { method: "PUT", headers: ghKopf(), body: JSON.stringify(koerper) })
+          .then(function(r){
+            if(r.status === 409 || r.status === 422){ syncNochmal = true; return; }
+            if(!r.ok) throw new Error("Hochladen fehlgeschlagen (" + r.status + ")");
+          });
+      })
+      .then(function(){
+        syncLaeuft = false;
+        setSync("zuletzt " + uhrzeitJetzt() + " Uhr", "ok");
+        if(syncNochmal){ syncNochmal = false; setTimeout(syncJetzt, 1200); }
+      })
+      .catch(function(err){
+        syncLaeuft = false;
+        var txt = (err && err.message) ? err.message : "kein Netz";
+        setSync(txt === "Failed to fetch" ? "offline — später erneut" : txt, "warn");
+      });
+  }
+
+  /* ---------- Aktionen ---------- */
+  var editKey = todayKey();
+
+  function primaryAction(){
+    var k = todayKey(), d = day(k, true), oi = openSeg(d);
+    if(oi >= 0){
+      d.segs[oi].e = nowStamp();
+      if(hm2min(d.segs[oi].e) - hm2min(d.segs[oi].s) < 5/60) d.segs.splice(oi,1);
+    } else {
+      d.closed = false;
+      d.segs.push({ s: nowStamp(), e: null, k: state.settings.lastK || "" });
+    }
+    if(!d.segs.length) leere(k);
+    editKey = k; save(k); renderAll();
+  }
+  function endDay(){
+    var k = todayKey(), d = day(k, true), oi = openSeg(d);
+    if(oi >= 0){
+      d.segs[oi].e = nowStamp();
+      if(hm2min(d.segs[oi].e) - hm2min(d.segs[oi].s) < 5/60) d.segs.splice(oi,1);
+    }
+    if(hasTimes(d)) d.closed = true; else leere(k);
+    editKey = k; save(k); renderAll();
+  }
+
+  /* Projektwechsel: laufenden Block beenden, neuen mit der neuen Nummer starten. */
+  function wechsleProjekt(neu){
+    neu = (neu || "").trim();
+    state.settings.lastK = neu;
+    var k = todayKey(), d = state.days[k], oi = openSeg(d);
+    if(oi >= 0){
+      var laufend = d.segs[oi];
+      if(kom(laufend) !== neu){
+        if(segMin(laufend, k) < 0.5){
+          laufend.k = neu;
+        } else {
+          var jetzt = nowStamp();
+          laufend.e = jetzt;
+          d.segs.push({ s: jetzt, e: null, k: neu });
+        }
+        toast(neu ? "Läuft jetzt auf " + neu : "Läuft ohne Nummer weiter");
+      }
+    } else {
+      toast(neu ? "Nächster Start läuft auf " + neu : "Ohne Nummer ausgewählt");
+    }
+    save(k); renderAll();
+  }
+
+  var verwaltet = false;
+
+  function legeAn(){
+    var feld = document.getElementById("kommNeu");
+    var neu = feld.value.trim();
+    if(!neu){ feld.focus(); return; }
+    if(state.settings.komList.indexOf(neu) < 0) state.settings.komList.push(neu);
+    feld.value = "";
+    document.getElementById("kommAdd").hidden = true;
+    wechsleProjekt(neu);
+  }
+
+  function entferne(nr){
+    var i = state.settings.komList.indexOf(nr);
+    if(i >= 0) state.settings.komList.splice(i, 1);
+    toast("Knopf entfernt — gebuchte Zeiten bleiben erhalten");
+    saveSettings(); renderAll();
+  }
+
+  /* ---------- Rendern ---------- */
+  function renderAll(){ renderHead(); renderStage(); renderKomm(); renderSegs(); renderMonth(); renderSettings(); tick(); }
+  /* Wie renderAll, laesst die Zeitenliste aber stehen — sonst verliert
+     das gerade bearbeitete Uhrzeitfeld beim Tippen den Fokus. */
+  function renderRest(){ renderHead(); renderStage(); renderKomm(); renderMonth(); renderSettings(); tick(); }
+
+  function renderKomm(){
+    var k = todayKey(), d = state.days[k], oi = openSeg(d);
+    var laeuft = oi >= 0;
+    var aktuell = laeuft ? kom(d.segs[oi]) : (state.settings.lastK || "");
+
+    var heute = {};
+    projekte([k]).forEach(function(pr){ heute[pr.k] = pr.min; });
+
+    var bar = document.getElementById("pBar");
+    bar.textContent = "";
+
+    function chip(nr, label){
+      var b = document.createElement("button");
+      b.className = "pchip" + (nr === aktuell ? (laeuft ? " is-running" : " is-active") : "");
+      var n = document.createElement("span"); n.textContent = label;
+      b.appendChild(n);
+      if(heute[nr] > 0){
+        var t = document.createElement("span"); t.className = "pt";
+        t.textContent = min2hm(heute[nr]);
+        b.appendChild(t);
+      }
+      if(verwaltet && nr){
+        var x = document.createElement("span"); x.className = "x"; x.textContent = "×";
+        b.appendChild(x);
+        b.title = "Diesen Knopf entfernen";
+        b.addEventListener("click", function(){ entferne(nr); });
+      } else {
+        b.title = nr ? "Zeit auf " + nr + " buchen" : "Zeit ohne Nummer buchen";
+        b.addEventListener("click", function(){ wechsleProjekt(nr); });
+      }
+      bar.appendChild(b);
+    }
+
+    /* "ohne Nr." nur zeigen, wenn es gerade zutrifft oder heute so gebucht wurde */
+    if(aktuell === "" || heute[""] > 0) chip("", "ohne Nr.");
+    state.settings.komList.forEach(function(nr){ chip(nr, nr); });
+
+    var plus = document.createElement("button");
+    plus.className = "pchip tool";
+    plus.textContent = "+ Nummer";
+    plus.title = "Neue Kommissionsnummer anlegen";
+    plus.addEventListener("click", function(){
+      verwaltet = false;
+      document.getElementById("kommAdd").hidden = false;
+      renderKomm();
+      document.getElementById("kommNeu").focus();
+    });
+    bar.appendChild(plus);
+
+    if(state.settings.komList.length){
+      var stift = document.createElement("button");
+      stift.className = "pchip tool";
+      stift.textContent = verwaltet ? "fertig" : "bearbeiten";
+      stift.title = "Knöpfe entfernen";
+      stift.addEventListener("click", function(){ verwaltet = !verwaltet; renderKomm(); });
+      bar.appendChild(stift);
+    }
+
+    var info = document.getElementById("kommInfo");
+    if(verwaltet){
+      info.textContent = "Knopf anklicken zum Entfernen — gebuchte Zeiten bleiben erhalten.";
+    } else if(laeuft){
+      info.textContent = aktuell
+        ? "läuft auf " + aktuell + " · heute " + min2hm(heute[aktuell] || 0) + " Std."
+        : "läuft ohne Nummer";
+    } else {
+      info.textContent = aktuell ? "nächster Start läuft auf " + aktuell : "keine Nummer gewählt";
+    }
+
+    var liste = document.getElementById("kommListe");
+    liste.textContent = "";
+    state.settings.komList.forEach(function(n){
+      var o = document.createElement("option"); o.value = n; liste.appendChild(o);
+    });
+  }
+
+  function renderHead(){
+    var n = new Date();
+    document.getElementById("todayLine").textContent =
+      WD[n.getDay()]+", "+pad(n.getDate())+"."+pad(n.getMonth()+1)+"."+n.getFullYear();
+  }
+
+  function renderStage(){
+    var k = todayKey(), d = state.days[k], oi = openSeg(d);
+    var pill=document.getElementById("statusPill"), txt=document.getElementById("statusText"),
+        note=document.getElementById("statusNote"), bp=document.getElementById("btnPrimary"),
+        be=document.getElementById("btnEnd");
+    pill.className="pill"; bp.className="btn-primary";
+
+    if(oi >= 0){
+      pill.classList.add("is-run"); txt.textContent="Arbeitszeit läuft";
+      note.textContent="seit "+short(d.segs[oi].s)+" Uhr"; bp.textContent="Pause";
+      bp.classList.add("is-run"); be.disabled=false;
+    } else if(d && d.closed && hasTimes(d)){
+      pill.classList.add("is-idle"); txt.textContent="Feierabend";
+      note.textContent="ausgestempelt um "+clock(lastEnd(k))+" Uhr";
+      bp.textContent="Noch einmal starten"; be.disabled=true;
+    } else if(hasTimes(d)){
+      pill.classList.add("is-pause"); txt.textContent="Pause";
+      var l2=d.segs[d.segs.length-1];
+      note.textContent="seit "+(l2?short(l2.e):"")+" Uhr"; bp.textContent="Weiter arbeiten"; be.disabled=false;
+    } else {
+      pill.classList.add("is-idle"); txt.textContent="Noch nicht gestartet";
+      note.textContent=""; bp.textContent="Arbeit starten"; be.disabled=true;
+    }
+    renderStamp();
+    renderTiles();
+  }
+
+  function renderStamp(){
+    var k = todayKey(), d = state.days[k];
+    var box=document.getElementById("stampBox"), lab=document.getElementById("stampLab"),
+        val=document.getElementById("stampVal"), sub=document.getElementById("stampSub");
+    if(!hasTimes(d)){ box.hidden = true; return; }
+    box.hidden = false;
+    var gebucht = bookedMin(k), roh = rawMin(k);
+    if(d.closed){
+      var bs = buchStart(k), be = buchEnde(k);
+      lab.textContent = "Ausgestempelt um";
+      val.textContent = clock(lastEnd(k)) + " Uhr";
+      var pauseGes = Math.round(pauseMin(k) + abzugMin(k));
+      sub.textContent = clock(bs) + "–" + clock(be) + " Uhr"
+        + (pauseGes > 0 ? "  −  " + pauseGes + " Min. Pause" : "")
+        + "  =  " + min2hm(gebucht) + " Std. Arbeitszeit";
+    } else {
+      var ziel = stampOutAt(k);
+      var fehlt = Math.round(Math.max(0, neededBooked(k) - targetMin()));
+      var rest = ziel !== null ? ziel - nowMin() : 0;
+      lab.textContent = rest > 0 ? "Ausstempeln um" : "Feierabend möglich seit";
+      val.textContent = (ziel !== null ? clock(ziel) : "--:--") + " Uhr";
+      sub.textContent = rest > 0
+        ? "Noch " + min2hm(rest) + " Std." + (fehlt > 0 ? " — darin sind " + fehlt + " Min. Pause enthalten" : "")
+        : "Dein Tagessoll ist voll.";
+    }
+  }
+
+  function renderTiles(){
+    var k = todayKey(), d = state.days[k], net = netMin(k);
+    document.getElementById("dNet").textContent = min2hm(net);
+    document.getElementById("dPause").textContent = min2hm(pauseMin(k) + pflichtOffen(k));
+    var diff = document.getElementById("dDiff");
+    var dv = hasTimes(d) ? net - targetMin() : 0;
+    diff.textContent = hasTimes(d) ? fmtSigned(dv) : "0:00";
+    diff.className = "v " + (dv >= 0 ? "pos" : "negv");
+  }
+
+  function renderSegs(){
+    document.getElementById("editDate").value = editKey;
+    var box = document.getElementById("segList");
+    box.textContent = "";
+    var d = state.days[editKey];
+    var sum = document.getElementById("editSummary");
+    if(!hasTimes(d)){
+      var p=document.createElement("div"); p.className="empty";
+      p.textContent="Für diesen Tag ist noch nichts erfasst."; box.appendChild(p);
+      sum.textContent = ""; return;
+    }
+    d.segs.forEach(function(seg, idx){
+      var row=document.createElement("div"); row.className="seg"+(seg.e?"":" open");
+      var l1=document.createElement("span"); l1.className="lbl"; l1.textContent="von";
+      var i1=document.createElement("input"); i1.type="time"; i1.value=short(seg.s);
+      var l2=document.createElement("span"); l2.className="lbl"; l2.textContent="bis";
+      var i2=document.createElement("input"); i2.type="time"; i2.value=short(seg.e);
+      var lk=document.createElement("span"); lk.className="lbl"; lk.textContent="Kom.";
+      var ik=document.createElement("input"); ik.type="text"; ik.className="komm-cell";
+      ik.setAttribute("list","kommListe"); ik.value=kom(seg); ik.placeholder="—";
+      var s2=document.createElement("span"); s2.className="sum";
+
+      function zeileAuffrischen(){
+        row.className = "seg" + (seg.e ? "" : " open");
+        if(seg.e){ var a=hm2min(seg.s), b=hm2min(seg.e); if(b<a) b+=1440; s2.textContent=min2hm(b-a); }
+        else { s2.textContent="läuft"; }
+        renderEditSummary();
+        renderRest();
+      }
+      zeileAuffrischen();
+
+      i1.addEventListener("change", function(){
+        if(!i1.value){ i1.value = short(seg.s); return; }
+        seg.s = i1.value; save(editKey); zeileAuffrischen();
+      });
+      i2.addEventListener("change", function(){
+        seg.e = i2.value || null;
+        if(seg.e && state.days[editKey]) state.days[editKey].closed = false;
+        save(editKey); zeileAuffrischen();
+      });
+      ik.addEventListener("change", function(){
+        seg.k = ik.value.trim();
+        if(seg.k && state.settings.komList.indexOf(seg.k) < 0) state.settings.komList.push(seg.k);
+        save(editKey); zeileAuffrischen();
+      });
+      var del=document.createElement("button"); del.className="icon-btn"; del.textContent="Löschen";
+      del.addEventListener("click", function(){
+        state.days[editKey].segs.splice(idx,1);
+        if(!state.days[editKey].segs.length) leere(editKey);
+        save(editKey); renderAll(); });
+      row.appendChild(l1); row.appendChild(i1); row.appendChild(l2); row.appendChild(i2);
+      row.appendChild(lk); row.appendChild(ik);
+      row.appendChild(s2); row.appendChild(del);
+      box.appendChild(row);
+    });
+    renderEditSummary();
+  }
+
+  function renderEditSummary(){
+    var sum = document.getElementById("editSummary");
+    if(!hasTimes(state.days[editKey])){ sum.textContent = ""; return; }
+    var net = netMin(editKey);
+    var bs = buchStart(editKey), be = buchEnde(editKey);
+    var pauseGesE = Math.round(pauseMin(editKey) + Math.max(abzugMin(editKey), pflichtOffen(editKey)));
+    var zeilen = [];
+    if(bs !== null) zeilen.push(["Gebucht", clock(bs) + "–" + (be !== null ? clock(be) : "offen")]);
+    zeilen.push(["Pause", pauseGesE + " Min."]);
+    zeilen.push(["Arbeitszeit", min2hm(net)]);
+    zeilen.push(["Differenz", fmtSigned(net - targetMin())]);
+    sum.textContent = "";
+    zeilen.forEach(function(p){
+      var s=document.createElement("span");
+      s.appendChild(document.createTextNode(p[0]+" "));
+      var b=document.createElement("b"); b.textContent=p[1]; s.appendChild(b);
+      sum.appendChild(s);
+    });
+  }
+
+  var viewMonth = (function(){ var n=new Date(); return {y:n.getFullYear(), m:n.getMonth()}; })();
+  function monthKeys(y,m){
+    var pre = y+"-"+pad(m+1)+"-";
+    return Object.keys(state.days).filter(function(k){
+      return k.indexOf(pre) === 0 && hasTimes(state.days[k]);
+    }).sort();
+  }
+  function renderMonth(){
+    document.getElementById("monthTitle").textContent = MN[viewMonth.m]+" "+viewMonth.y;
+    var keys = monthKeys(viewMonth.y, viewMonth.m), ist=0, soll=0;
+    keys.forEach(function(k){ ist += netMin(k); if(hasTimes(state.days[k])) soll += targetMin(); });
+    document.getElementById("mIst").textContent = min2hm(ist);
+    document.getElementById("mSoll").textContent = min2hm(soll);
+    var md=document.getElementById("mDiff");
+    md.textContent = fmtSigned(ist-soll);
+    md.className = "v " + (ist-soll >= 0 ? "pos" : "negv");
+
+    var list=document.getElementById("dayList"); list.textContent="";
+    if(!keys.length){
+      var e=document.createElement("div"); e.className="empty";
+      e.textContent="In diesem Monat ist noch nichts erfasst."; list.appendChild(e);
+    }
+    keys.forEach(function(k){
+      var dt=parseIso(k), mins=netMin(k);
+      var row=document.createElement("button");
+      row.className="day-row"+(k===editKey?" sel":"");
+      var c1=document.createElement("span"); c1.className="dt";
+      c1.textContent = pad(dt.getDate())+"."+pad(dt.getMonth()+1)+". "+WD[dt.getDay()].slice(0,2);
+      var bar=document.createElement("span"); bar.className="bar";
+      var fill=document.createElement("i");
+      var ratio = targetMin()>0 ? mins/targetMin() : 0;
+      fill.style.width = Math.min(100, ratio*100)+"%";
+      if(ratio > 1.001) fill.className="over";
+      bar.appendChild(fill);
+      var c3=document.createElement("span"); c3.className="ist"; c3.textContent=min2hm(mins);
+      var c4=document.createElement("span"); c4.className="df";
+      var df=mins-targetMin(); c4.textContent=fmtSigned(df);
+      c4.classList.add(df>=0?"pos":"negv");
+      row.appendChild(c1); row.appendChild(bar); row.appendChild(c3); row.appendChild(c4);
+      row.addEventListener("click", function(){
+        editKey = k;
+        var det = document.getElementById("segDetails");
+        det.open = true;
+        renderSegs(); renderMonth();
+        det.scrollIntoView({ behavior:"smooth", block:"nearest" });
+      });
+      list.appendChild(row);
+    });
+
+    var msplit = document.getElementById("monthSplit");
+    msplit.textContent = "";
+    var pm = projekte(keys);
+    if(!pm.length){
+      var leer = document.createElement("span"); leer.className = "empty";
+      leer.textContent = "Noch keine Zeiten erfasst.";
+      msplit.appendChild(leer);
+    }
+    pm.forEach(function(pr){
+      var c = document.createElement("span"); c.className = "chip";
+      c.appendChild(document.createTextNode(komLabel(pr.k) + " "));
+      var b = document.createElement("b"); b.textContent = min2hm(pr.min);
+      c.appendChild(b);
+      msplit.appendChild(c);
+    });
+
+    var tot=0, nd=0;
+    Object.keys(state.days).forEach(function(k){
+      if(hasTimes(state.days[k])){ tot += netMin(k)-targetMin(); nd++; }
+    });
+    tot += state.settings.carryH*60;
+    var cap = state.settings.capH*60;
+    var account = tot, payout = 0;
+    if(cap > 0 && tot > cap){ account = cap; payout = tot-cap; }
+    var to=document.getElementById("totalOver");
+    to.textContent = fmtSigned(account);
+    to.className = "v " + (account >= 0 ? "pos" : "negv");
+    var pt=document.getElementById("payoutTile");
+    pt.hidden = !(cap > 0);
+    document.getElementById("payout").textContent = min2hm(payout);
+    document.getElementById("totalDays").textContent = nd;
+  }
+
+  function renderSettings(){
+    var s = state.settings;
+    document.getElementById("setTarget").value = s.targetH;
+    document.getElementById("setCarry").value = s.carryH;
+    document.getElementById("setCap").value = s.capH;
+    document.getElementById("setRound").value = s.roundMin;
+    var nf = document.getElementById("setName");
+    if(document.activeElement !== nf) nf.value = s.name || "";
+  }
+
+  function tick(){
+    var k = todayKey(), d = state.days[k];
+    var running = openSeg(d) >= 0;
+    /* Nach dem Feierabend zeigt die Uhr dieselbe Zahl wie die Kachel. */
+    var wert = (d && d.closed) ? netMin(k) : rawMin(k);
+    document.getElementById("clockBig").textContent = fmtDur(wert*60, running);
+    document.getElementById("clockUnit").textContent = running
+      ? "Std. gearbeitet — läuft" : "Std. gearbeitet heute";
+    if(hasTimes(d) && !d.closed){
+      renderTiles(); renderStamp(); renderKomm();
+      if(!running){
+        var last = d.segs[d.segs.length-1];
+        if(last && last.e){
+          var run = nowMin() - hm2min(last.e);
+          if(run < 0) run += 1440;
+          document.getElementById("statusNote").textContent =
+            "seit " + short(last.e) + " Uhr · " + fmtDur(run*60, true) + " Pause";
+        }
+      }
+    }
+  }
+
+  function toast(msg){
+    var t=document.getElementById("toast");
+    t.textContent=msg; t.classList.add("show");
+    setTimeout(function(){ t.classList.remove("show"); }, 1800);
+  }
+  function copyText(text, msg){
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).then(function(){ toast(msg); }, function(){ fallbackCopy(text,msg); });
+    } else { fallbackCopy(text,msg); }
+  }
+  function fallbackCopy(text,msg){
+    var ta=document.createElement("textarea");
+    ta.value=text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    try { document.execCommand("copy"); toast(msg); } catch(e){ toast("Kopieren nicht möglich"); }
+    document.body.removeChild(ta);
+  }
+  function baueNachweis(){
+    var keys = monthKeys(viewMonth.y, viewMonth.m);
+    var ist = 0, soll = 0, pausen = 0;
+    var zeilen = keys.map(function(k){
+      var dt = parseIso(k), d = state.days[k];
+      var bs = buchStart(k), be = buchEnde(k);
+      var net = netMin(k), pa = pauseMin(k) + abzugMin(k);
+      ist += net; pausen += pa; if(hasTimes(d)) soll += targetMin();
+      var teile = projekte([k]).filter(function(pr){ return pr.min >= 0.5; })
+        .map(function(pr){ return esc(komLabel(pr.k)) + " " + min2hm(pr.min); }).join("<br>");
+      return "<tr><td class=\"num\">" + pad(dt.getDate()) + "." + pad(dt.getMonth()+1) + "."
+        + "</td><td>" + WD[dt.getDay()].slice(0,2)
+        + "</td><td class=\"num\">" + (bs !== null ? clock(bs) : "")
+        + "</td><td class=\"num\">" + (be !== null ? clock(be) : "offen")
+        + "</td><td class=\"num\">" + min2hm(net)
+        + "</td><td class=\"num\">" + min2hm(pa)
+        + "</td><td class=\"num\">" + fmtSigned(net - targetMin())
+        + "</td><td>" + teile + "</td></tr>";
+    }).join("");
+
+    var pr = projekte(keys).filter(function(x){ return x.min >= 0.5; });
+    var projZeilen = pr.map(function(x){
+      var anteil = ist > 0 ? Math.round(x.min / ist * 1000)/10 : 0;
+      return "<tr><td>" + esc(komLabel(x.k))
+        + "</td><td class=\"num\">" + min2hm(x.min)
+        + "</td><td class=\"num\">" + dez(x.min)
+        + "</td><td class=\"num\">" + String(anteil).replace(".", ",") + " %</td></tr>";
+    }).join("");
+
+    var heute = new Date();
+    var kopf = state.settings.name ? esc(state.settings.name) : "";
+
+    document.getElementById("printArea").innerHTML =
+      "<div style=\"font-size:10pt;letter-spacing:.08em;text-transform:uppercase\">"
+      + "Müller &amp; Sohn GmbH &amp; Co. KG</div>"
+      + "<h1>Arbeitszeitnachweis</h1>"
+      + "<div class=\"meta\">" + (kopf ? "<strong>" + kopf + "</strong> &middot; " : "")
+      + MN[viewMonth.m] + " " + viewMonth.y
+      + " &middot; Tagessoll " + min2hm(targetMin()) + " Std."
+      + (raster() ? " &middot; Beginn und Ende auf " + raster() + " Minuten gerundet" : "")
+      + " &middot; erstellt am " + pad(heute.getDate()) + "." + pad(heute.getMonth()+1) + "." + heute.getFullYear()
+      + "</div>"
+      + "<table><thead><tr><th class=\"num\">Datum</th><th>Tag</th><th class=\"num\">Beginn</th>"
+      + "<th class=\"num\">Ende</th><th class=\"num\">Arbeitszeit</th><th class=\"num\">Pause</th>"
+      + "<th class=\"num\">+/&minus;</th><th>Kommissionsnummern</th></tr></thead>"
+      + "<tbody>" + zeilen
+      + "<tr class=\"sum\"><td colspan=\"4\">Summe (" + keys.length + " Arbeitstage)</td>"
+      + "<td class=\"num\">" + min2hm(ist) + "</td>"
+      + "<td class=\"num\">" + min2hm(pausen) + "</td>"
+      + "<td class=\"num\">" + fmtSigned(ist - soll) + "</td><td></td></tr>"
+      + "</tbody></table>"
+      + "<h2>Aufteilung nach Kommissionsnummern</h2>"
+      + "<table><thead><tr><th>Kom.-Nr.</th><th class=\"num\">Stunden</th>"
+      + "<th class=\"num\">dezimal</th><th class=\"num\">Anteil</th></tr></thead><tbody>"
+      + projZeilen
+      + "<tr class=\"sum\"><td>Gesamt</td><td class=\"num\">" + min2hm(ist)
+      + "</td><td class=\"num\">" + dez(ist) + "</td><td class=\"num\">100 %</td></tr>"
+      + "</tbody></table>"
+      + "<div class=\"sign\"><div>Datum, Unterschrift Mitarbeiter</div>"
+      + "<div>Datum, Unterschrift Vorgesetzter</div></div>";
+  }
+
+  function monthCsv(){
+    var keys = monthKeys(viewMonth.y, viewMonth.m);
+    var out = ["Datum;Wochentag;Kommen;Gehen;Gebucht;Pause;Soll;Differenz;Kommissionsnummern"];
+    var ist=0, soll=0;
+    keys.forEach(function(k){
+      var dt=parseIso(k), d=state.days[k];
+      var bs = buchStart(k), be = buchEnde(k);
+      var net = netMin(k);
+      ist += net; if(hasTimes(d)) soll += targetMin();
+      out.push([pad(dt.getDate())+"."+pad(dt.getMonth()+1)+"."+dt.getFullYear(), WD[dt.getDay()],
+        bs!==null?clock(bs):"", be!==null?clock(be):"offen",
+        min2hm(net), min2hm(pauseMin(k) + abzugMin(k)), min2hm(targetMin()),
+        fmtSigned(net-targetMin()),
+        projekte([k]).map(function(pr){ return komLabel(pr.k)+"="+min2hm(pr.min); }).join(" | ")
+      ].join(";"));
+    });
+    out.push("");
+    out.push("Summe;;;;"+min2hm(ist)+";;"+min2hm(soll)+";"+fmtSigned(ist-soll));
+    out.push("");
+    out.push("Kommissionsnummer;Stunden;dezimal");
+    projekte(keys).forEach(function(pr){
+      out.push(komLabel(pr.k)+";"+min2hm(pr.min)+";"+dez(pr.min));
+    });
+    return out.join("\n");
+  }
+
+  /* ---------- Ereignisse ---------- */
+  /* ---------- iPhone: Kennzeichnung fuer den Home-Bildschirm ---------- */
+  (function(){
+    function meta(name, inhalt){
+      var m = document.createElement("meta");
+      m.setAttribute("name", name); m.setAttribute("content", inhalt);
+      document.head.appendChild(m);
+    }
+    try {
+      meta("apple-mobile-web-app-capable", "yes");
+      meta("mobile-web-app-capable", "yes");
+      meta("apple-mobile-web-app-status-bar-style", "black-translucent");
+      meta("apple-mobile-web-app-title", "Stempelkarte");
+      meta("theme-color", "#003057");
+      var icon = document.createElement("link");
+      icon.rel = "apple-touch-icon";
+      icon.href = "data:image/png;base64,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";
+      document.head.appendChild(icon);
+    } catch(e){}
+  })();
+
+  /* ---------- Helles / dunkles Design ---------- */
+  var TK = "stempelkarte.theme";
+  function systemDunkel(){
+    try { return !!(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches); }
+    catch(e){ return false; }
+  }
+  function istDunkel(){
+    var t = document.documentElement.getAttribute("data-theme");
+    if(t === "dark") return true;
+    if(t === "light") return false;
+    return systemDunkel();
+  }
+  function setzeTheme(t, merken){
+    if(t) document.documentElement.setAttribute("data-theme", t);
+    else document.documentElement.removeAttribute("data-theme");
+    if(merken){ try { if(t) localStorage.setItem(TK, t); else localStorage.removeItem(TK); } catch(e){} }
+    document.getElementById("btnTheme").textContent = istDunkel() ? "Hell" : "Dunkel";
+  }
+  document.getElementById("btnTheme").addEventListener("click", function(){
+    setzeTheme(istDunkel() ? "light" : "dark", true);
+  });
+  (function(){
+    var gespeichert = null;
+    try { gespeichert = localStorage.getItem(TK); } catch(e){}
+    setzeTheme(gespeichert === "dark" || gespeichert === "light" ? gespeichert : null, false);
+    try {
+      var mq = window.matchMedia("(prefers-color-scheme: dark)");
+      var reagiere = function(){ if(!document.documentElement.getAttribute("data-theme")) setzeTheme(null, false); };
+      if(mq.addEventListener) mq.addEventListener("change", reagiere);
+      else if(mq.addListener) mq.addListener(reagiere);
+    } catch(e){}
+  })();
+
+  var CK = "stempelkarte.compact";
+  function setCompact(on){
+    document.body.classList.toggle("compact", !!on);
+    document.getElementById("btnCompact").textContent = on ? "Alles zeigen" : "Kompakt";
+    /* Der Fenstertitel sagt dem Windows-Starter, welche Fenstergroesse gilt. */
+    document.title = on ? "Stempelkarte" : "Stempelkarte Vollansicht";
+    try { localStorage.setItem(CK, on ? "1" : "0"); } catch(e){}
+  }
+  document.getElementById("btnCompact").addEventListener("click", function(){
+    setCompact(!document.body.classList.contains("compact"));
+  });
+  try { setCompact(localStorage.getItem(CK) === "1"); } catch(e){ setCompact(false); }
+
+  document.getElementById("btnPrimary").addEventListener("click", primaryAction);
+  document.getElementById("btnEnd").addEventListener("click", endDay);
+  document.getElementById("editDate").addEventListener("change", function(e){
+    if(!e.target.value){ e.target.value = editKey; return; }
+    editKey = e.target.value;
+    var d = parseIso(editKey);
+    viewMonth = { y:d.getFullYear(), m:d.getMonth() };
+    renderSegs(); renderMonth();
+  });
+  document.getElementById("btnAddSeg").addEventListener("click", function(){
+    var d = day(editKey, true);
+    var last = d.segs.length ? d.segs[d.segs.length-1] : null;
+    var start = last && last.e ? last.e : (editKey === todayKey() ? nowHM() : "09:00");
+    d.segs.push({ s:start, e:start, k: last ? kom(last) : (state.settings.lastK || "") });
+    save(editKey); renderAll();
+  });
+  document.getElementById("prevMonth").addEventListener("click", function(){
+    viewMonth.m--; if(viewMonth.m<0){ viewMonth.m=11; viewMonth.y--; } renderMonth();
+  });
+  document.getElementById("nextMonth").addEventListener("click", function(){
+    viewMonth.m++; if(viewMonth.m>11){ viewMonth.m=0; viewMonth.y++; } renderMonth();
+  });
+  document.getElementById("btnKommAdd").addEventListener("click", legeAn);
+  document.getElementById("btnKommAbbr").addEventListener("click", function(){
+    document.getElementById("kommNeu").value = "";
+    document.getElementById("kommAdd").hidden = true;
+  });
+  document.getElementById("kommNeu").addEventListener("keydown", function(e){
+    if(e.key === "Enter"){ e.preventDefault(); legeAn(); }
+    if(e.key === "Escape"){ this.value = ""; document.getElementById("kommAdd").hidden = true; }
+  });
+  document.getElementById("setName").addEventListener("change", function(e){
+    state.settings.name = e.target.value.trim(); saveSettings();
+  });
+  document.getElementById("btnPrint").addEventListener("click", function(){
+    baueNachweis();
+    setTimeout(function(){ window.print(); }, 60);
+  });
+  document.getElementById("btnCopy").addEventListener("click", function(){
+    copyText(monthCsv(), "Monat kopiert — in Excel einfügen");
+  });
+  document.getElementById("btnExportAll").addEventListener("click", function(){
+    copyText(JSON.stringify(state), "Sicherung kopiert");
+  });
+  document.getElementById("btnImportOpen").addEventListener("click", function(){
+    var box = document.getElementById("importBox");
+    box.hidden = false;
+    document.getElementById("importText").focus();
+  });
+  document.getElementById("btnImportAbbr").addEventListener("click", function(){
+    document.getElementById("importText").value = "";
+    document.getElementById("importBox").hidden = true;
+  });
+  document.getElementById("btnImportDo").addEventListener("click", function(){
+    var txt = document.getElementById("importText").value.trim();
+    if(!txt){ toast("Bitte zuerst den gesicherten Text einfügen"); return; }
+    var p;
+    try { p = JSON.parse(txt); } catch(e){ toast("Das ist kein gültiger Sicherungstext"); return; }
+    if(!p || typeof p !== "object" || !p.days){ toast("Der Text enthält keine Zeiten"); return; }
+    var m = migrate(p);
+    if(!m){ toast("Sicherung konnte nicht gelesen werden"); return; }
+    state = m;
+    Object.keys(state.days).forEach(function(k){ state.days[k].u = stempel(state.days[k].u); });
+    state.settingsU = stempel(state.settingsU);
+    knoepfeNachziehen();
+    save(); renderAll();
+    document.getElementById("importText").value = "";
+    document.getElementById("importBox").hidden = true;
+    toast("Übernommen: " + Object.keys(state.days).length + " Tage");
+  });
+  [["setTarget","targetH",0,24],["setCarry","carryH",-9999,9999],["setCap","capH",0,9999],
+   ["setRound","roundMin",0,60]]
+  .forEach(function(cfg){
+    document.getElementById(cfg[0]).addEventListener("change", function(e){
+      var v = parseFloat(String(e.target.value).replace(",", "."));
+      if(isNaN(v)){ renderSettings(); return; }
+      v = Math.min(cfg[3], Math.max(cfg[2], v));
+      state.settings[cfg[1]] = v;
+      saveSettings(); renderAll();
+    });
+  });
+  function zeigeSyncFelder(){
+    document.getElementById("syncUser").value = syncCfg ? syncCfg.user : "";
+    document.getElementById("syncRepo").value = syncCfg ? syncCfg.repo : "";
+    document.getElementById("syncToken").value = syncCfg ? syncCfg.token : "";
+  }
+  document.getElementById("btnSyncSave").addEventListener("click", function(){
+    var u = document.getElementById("syncUser").value.trim();
+    var r = document.getElementById("syncRepo").value.trim();
+    var t = document.getElementById("syncToken").value.trim();
+    if(!u || !r || !t){ toast("Benutzername, Repository und Schlüssel ausfüllen"); return; }
+    syncCfg = { user: u, repo: r, token: t };
+    speichereSyncCfg();
+    setStoreInfo();
+    syncJetzt();
+  });
+  document.getElementById("btnSyncNow").addEventListener("click", function(){ syncJetzt(); });
+  document.getElementById("btnSyncOff").addEventListener("click", function(){
+    syncCfg = null; speichereSyncCfg(); zeigeSyncFelder(); setSync("nicht eingerichtet");
+    setStoreInfo(); toast("Abgleich getrennt — die Zeiten bleiben auf diesem Gerät");
+  });
+
+  /* Offline-Betrieb, wenn die Seite von einer Adresse geladen wurde. */
+  try {
+    if("serviceWorker" in navigator && location.protocol === "https:"){
+      window.addEventListener("load", function(){
+        navigator.serviceWorker.register("sw.js").catch(function(){});
+      });
+    }
+  } catch(e){}
+
+  load();
+  ladeSyncCfg();
+  zeigeSyncFelder();
+  renderAll();
+  setStoreInfo();
+  if(syncCfg){
+    setSync("bereit");
+    syncJetzt();
+    setInterval(function(){ syncJetzt(); }, 180000);
+    window.addEventListener("online", function(){ syncJetzt(); });
+    document.addEventListener("visibilitychange", function(){
+      if(!document.hidden) syncJetzt();
+    });
+  }
+  setInterval(tick, 1000);
+  setInterval(function(){ var n=new Date(); if(n.getHours()===0 && n.getMinutes()===0) renderAll(); }, 30000);
+})();
+</script>
+</body>
+</html>

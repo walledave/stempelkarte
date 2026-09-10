@@ -1,0 +1,116 @@
+STEMPELKARTE AUF GITHUB EINRICHTEN
+==================================
+Ziel: Die Stempelkarte laeuft als App auf dem iPhone und am PC,
+und beide Geraete haben immer denselben Stand.
+
+Das Ganze besteht aus ZWEI Repositorys:
+
+  1) stempelkarte          OEFFENTLICH  - nur das Programm (die Seite)
+  2) stempelkarte-daten    PRIVAT       - deine Arbeitszeiten
+
+WICHTIG ZUM DATENSCHUTZ
+  GitHub Pages kann bei kostenlosen Konten nur aus einem OEFFENTLICHEN
+  Repository veroeffentlichen. Oeffentlich ist deshalb nur das PROGRAMM -
+  darin steht keine einzige Arbeitszeit. Deine Zeiten liegen im zweiten,
+  PRIVATEN Repository und sind nur mit deinem persoenlichen Zugangs-
+  schluessel erreichbar. Niemand sonst kommt daran.
+  (Wenn dir schon der Firmenname auf der oeffentlichen Seite zu viel ist,
+  sag Bescheid - der laesst sich in einer Minute entfernen.)
+
+
+SCHRITT 1 - Seite veroeffentlichen (einmalig, ca. 5 Minuten)
+------------------------------------------------------------
+ 1. github.com oeffnen -> oben rechts "+" -> "New repository"
+ 2. Repository name:  stempelkarte
+    Sichtbarkeit:     Public
+    "Create repository"
+ 3. Auf der naechsten Seite: "uploading an existing file" anklicken
+ 4. Diese 6 Dateien aus dem Ordner "pages" hineinziehen:
+       index.html
+       sw.js
+       manifest.webmanifest
+       icon-180.png
+       icon-192.png
+       icon-512.png
+    Unten auf "Commit changes"
+ 5. Oben im Repository: "Settings" -> links "Pages"
+    Source: "Deploy from a branch"
+    Branch: main  /  (root)   ->  "Save"
+ 6. Eine Minute warten, Seite neu laden. Oben steht dann die Adresse:
+       https://DEINNAME.github.io/stempelkarte/
+    Diese Adresse merken.
+
+
+SCHRITT 2 - Privates Repository fuer die Zeiten
+------------------------------------------------
+ 1. github.com -> "+" -> "New repository"
+ 2. Repository name:  stempelkarte-daten
+    Sichtbarkeit:     Private        <-- unbedingt
+    Haken setzen bei: "Add a README file"
+    "Create repository"
+
+
+SCHRITT 3 - Zugangsschluessel erzeugen
+---------------------------------------
+ 1. github.com/settings/personal-access-tokens/new  oeffnen
+    (Menue: Settings -> Developer settings ->
+     Personal access tokens -> Fine-grained tokens -> Generate new token)
+ 2. Token name:        Stempelkarte
+    Expiration:        z. B. 1 Jahr (danach einmal erneuern)
+    Repository access: "Only select repositories" -> stempelkarte-daten
+    Permissions -> Repository permissions -> Contents:
+                       auf "Read and write" stellen
+ 3. "Generate token" -> den Schluessel KOPIEREN
+    (er wird nur einmal angezeigt, beginnt mit github_pat_...)
+
+ Diesen Schluessel niemandem schicken - auch nicht mir im Chat.
+ Er gehoert nur in das Feld in der Stempelkarte.
+
+
+SCHRITT 4 - Abgleich in der Stempelkarte einschalten
+-----------------------------------------------------
+ Auf JEDEM Geraet einmal:
+   "Alles zeigen" -> "Einstellungen & Daten" -> Abgleich mit iPhone / PC
+     GitHub-Benutzername:  DEINNAME
+     Repository:           stempelkarte-daten
+     Zugangsschluessel:    github_pat_...
+   "Verbinden & abgleichen"
+ Unten erscheint "Abgleich: zuletzt HH:MM Uhr". Fertig.
+
+ Ab jetzt gleicht sich alles automatisch ab: beim Oeffnen, nach jeder
+ Aenderung und alle paar Minuten. Ohne Netz wird gesammelt und beim
+ naechsten Mal nachgeholt.
+
+ DEINE BISHERIGEN ZEITEN UEBERNEHMEN
+   Zuerst in der alten Version (das Fenster, das du bisher benutzt)
+   den Abgleich einschalten - damit werden sie hochgeladen.
+   Danach in der neuen Online-Version den Abgleich einschalten -
+   dort kommen sie wieder an. Nichts abtippen.
+
+
+SCHRITT 5 - Auf dem iPhone als App
+-----------------------------------
+ 1. In SAFARI die Adresse aus Schritt 1 oeffnen
+ 2. Unten auf das Teilen-Symbol -> "Zum Home-Bildschirm"
+ 3. Name "Stempelkarte" bestaetigen
+ Die App startet im Vollbild und laeuft auch ohne Empfang.
+ Danach in der App den Abgleich wie in Schritt 4 eintragen.
+
+
+SCHRITT 6 - Am PC dieselbe Version benutzen (empfohlen)
+--------------------------------------------------------
+ Im Windows-Ordner der Stempelkarte eine Textdatei "adresse.txt"
+ anlegen und NUR die Adresse hineinschreiben:
+       https://DEINNAME.github.io/stempelkarte/
+ Speichern, Stempelkarte.exe neu starten.
+ Ab jetzt oeffnet das Desktop-Fenster die Online-Version -
+ gleicher Stand wie auf dem iPhone, und Updates kommen automatisch.
+ (Ohne adresse.txt bleibt alles wie bisher mit der oertlichen Datei.)
+
+
+SPAETER ETWAS AENDERN
+----------------------
+ Neue Programmversion: im Repository "stempelkarte" die Datei index.html
+ ersetzen (Upload files) und in sw.js die Zahl in
+ "stempelkarte-v1" auf v2, v3 ... erhoehen. Dann laedt jedes Geraet
+ die neue Fassung beim naechsten Start.
