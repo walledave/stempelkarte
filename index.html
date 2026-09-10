@@ -222,6 +222,9 @@ html{-webkit-text-size-adjust:100%}
 .seg input.komm-cell{width:96px;font-size:13px}
 .mode-btn{margin-left:auto;padding:4px 10px;font-size:12px;font-weight:600;color:var(--muted);background:var(--surface-2);border-color:var(--line)}
 .mode-btn + .mode-btn{margin-left:6px}
+#btnSyncTop{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums}
+#btnSyncTop.ok{color:var(--run);border-color:color-mix(in srgb, var(--run) 40%, var(--line))}
+#btnSyncTop.warn{color:var(--neg);border-color:color-mix(in srgb, var(--neg) 40%, var(--line))}
 body.compact .mode-btn{padding:3px 8px;font-size:11px}
 .mode-btn:hover{color:var(--accent)}
 
@@ -309,6 +312,7 @@ footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
     <div class="status-row">
       <span class="pill is-idle" id="statusPill"><span class="led"></span><span id="statusText">Noch nicht gestartet</span></span>
       <span class="status-note" id="statusNote"></span>
+      <button class="mode-btn" id="btnSyncTop" title="Zeiten jetzt mit dem anderen Gerät abgleichen" hidden>↻</button>
       <button class="mode-btn" id="btnTheme" title="Zwischen hellem und dunklem Design wechseln">Dunkel</button>
       <button class="mode-btn" id="btnCompact" style="margin-left:0" title="Kleines Fenster für den Desktop">Kompakt</button>
     </div>
@@ -825,11 +829,18 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       "Content-Type": "application/json"
     };
   }
-  function setSync(text, art){
+  function setSync(text, art, kurz){
     var el = document.getElementById("syncStatus");
     if(el){ el.textContent = text; el.className = "sync-status" + (art ? " " + art : ""); }
     var f = document.getElementById("syncInfo");
     if(f) f.textContent = syncCfg ? "Abgleich: " + text : "";
+    var b = document.getElementById("btnSyncTop");
+    if(b){
+      b.hidden = !syncCfg;
+      b.textContent = "↻ " + (kurz || "");
+      b.className = "mode-btn" + (art ? " " + art : "");
+      b.title = syncCfg ? "Abgleich — " + text : "";
+    }
   }
   function uhrzeitJetzt(){
     var d = new Date();
@@ -879,10 +890,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   function syncJetzt(){
-    if(!syncCfg){ setSync("nicht eingerichtet"); return; }
+    if(!syncCfg){ setSync("nicht eingerichtet", null, ""); return; }
     if(syncLaeuft){ syncNochmal = true; return; }
     syncLaeuft = true;
-    setSync("gleicht ab …");
+    setSync("gleicht ab …", null, "…");
 
     var fern = null, sha = null, mussHoch = false;
 
@@ -922,13 +933,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       })
       .then(function(){
         syncLaeuft = false;
-        setSync("zuletzt " + uhrzeitJetzt() + " Uhr", "ok");
+        setSync("zuletzt " + uhrzeitJetzt() + " Uhr", "ok", uhrzeitJetzt());
         if(syncNochmal){ syncNochmal = false; setTimeout(syncJetzt, 1200); }
       })
       .catch(function(err){
         syncLaeuft = false;
         var txt = (err && err.message) ? err.message : "kein Netz";
-        setSync(txt === "Failed to fetch" ? "offline — später erneut" : txt, "warn");
+        setSync(txt === "Failed to fetch" ? "offline — später erneut" : txt, "warn", "offline");
       });
   }
 
@@ -1702,7 +1713,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     uebernehmeVerbindung(cfg);
   });
   document.getElementById("btnSyncOff").addEventListener("click", function(){
-    syncCfg = null; speichereSyncCfg(); zeigeSyncFelder(); setSync("nicht eingerichtet");
+    syncCfg = null; speichereSyncCfg(); zeigeSyncFelder(); setSync("nicht eingerichtet", null, "");
     setStoreInfo(); toast("Abgleich getrennt — die Zeiten bleiben auf diesem Gerät");
   });
 
@@ -1731,8 +1742,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   zeigeSyncFelder();
   renderAll();
   setStoreInfo();
+  document.getElementById("btnSyncTop").addEventListener("click", function(){ syncJetzt(); });
+
   if(syncCfg){
-    setSync("bereit");
+    setSync("bereit", null, "↻");
     syncJetzt();
     setInterval(function(){ syncJetzt(); }, 180000);
     window.addEventListener("online", function(){ syncJetzt(); });
