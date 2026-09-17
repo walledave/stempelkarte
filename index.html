@@ -139,6 +139,7 @@ section.panel{background:var(--surface);border:1px solid var(--line);border-radi
 .seg .lbl{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600}
 .seg .sum{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:14px;color:var(--muted);margin-left:auto}
 .seg.open{border-color:color-mix(in srgb, var(--run) 45%, var(--line));background:var(--run-soft)}
+.seg.pause-row{border-color:color-mix(in srgb, var(--pause) 45%, var(--line));background:var(--pause-soft)}
 input[type="time"],input[type="date"],input[type="number"]{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);color-scheme:light dark}
 input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .icon-btn{padding:5px 9px;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border-color:transparent}
@@ -333,20 +334,6 @@ footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
       <button id="btnEnd">Feierabend</button>
     </div>
 
-    <div class="komm">
-      <div class="komm-head">
-        <span>Kom.-Nr.</span>
-        <span class="info" id="kommInfo"></span>
-      </div>
-      <div class="pbar" id="pBar"></div>
-      <div class="komm-add" id="kommAdd" hidden>
-        <input id="kommNeu" placeholder="Nummer, z. B. 28674" autocomplete="off" spellcheck="false">
-        <button class="small-btn" id="btnKommAdd">Anlegen</button>
-        <button class="small-btn" id="btnKommAbbr">Abbrechen</button>
-      </div>
-      <datalist id="kommListe"></datalist>
-    </div>
-
     <div class="tiles">
       <div><span class="k">Arbeitszeit</span><span class="v" id="dNet">0:00</span></div>
       <div><span class="k">Pause</span><span class="v" id="dPause">0:00</span></div>
@@ -376,8 +363,6 @@ footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
           <div id="payoutTile" hidden><span class="k">Zur Auszahlung</span><span class="v" id="payout">0:00</span></div>
           <div><span class="k">Arbeitstage</span><span class="v" id="totalDays">0</span></div>
         </div>
-        <h2 style="margin-top:4px">Kommissionsnummern im Monat</h2>
-        <div class="split" id="monthSplit"></div>
         <div style="display:flex;gap:8px;flex-wrap:wrap">
           <button class="small-btn" id="btnPrint">Nachweis drucken / als PDF</button>
           <button class="small-btn" id="btnCopy">Monat als Tabelle kopieren</button>
@@ -945,7 +930,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       if(hm2min(d.segs[oi].e) - hm2min(d.segs[oi].s) < 5/60) d.segs.splice(oi,1);
     } else {
       d.closed = false;
-      d.segs.push({ s: nowStamp(), e: null, k: state.settings.lastK || "" });
+      d.segs.push({ s: nowStamp(), e: null });
     }
     if(!d.segs.length) leere(k);
     editKey = k; save(k); renderAll();
@@ -1004,10 +989,10 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
 
   /* ---------- Rendern ---------- */
-  function renderAll(){ renderHead(); renderStage(); renderKomm(); renderSegs(); renderMonth(); renderSettings(); tick(); }
+  function renderAll(){ renderHead(); renderStage(); renderSegs(); renderMonth(); renderSettings(); tick(); }
   /* Wie renderAll, laesst die Zeitenliste aber stehen — sonst verliert
      das gerade bearbeitete Uhrzeitfeld beim Tippen den Fokus. */
-  function renderRest(){ renderHead(); renderStage(); renderKomm(); renderMonth(); renderSettings(); tick(); }
+  function renderRest(){ renderHead(); renderStage(); renderMonth(); renderSettings(); tick(); }
 
   function renderKomm(){
     var k = todayKey(), d = state.days[k], oi = openSeg(d);
@@ -1172,9 +1157,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var i1=document.createElement("input"); i1.type="time"; i1.value=short(seg.s);
       var l2=document.createElement("span"); l2.className="lbl"; l2.textContent="bis";
       var i2=document.createElement("input"); i2.type="time"; i2.value=short(seg.e);
-      var lk=document.createElement("span"); lk.className="lbl"; lk.textContent="Kom.";
-      var ik=document.createElement("input"); ik.type="text"; ik.className="komm-cell";
-      ik.setAttribute("list","kommListe"); ik.value=kom(seg); ik.placeholder="—";
       var s2=document.createElement("span"); s2.className="sum";
 
       function zeileAuffrischen(){
@@ -1195,20 +1177,27 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         if(seg.e && state.days[editKey]) state.days[editKey].closed = false;
         save(editKey); zeileAuffrischen();
       });
-      ik.addEventListener("change", function(){
-        seg.k = ik.value.trim();
-        if(seg.k && state.settings.komList.indexOf(seg.k) < 0) state.settings.komList.push(seg.k);
-        save(editKey); zeileAuffrischen();
-      });
       var del=document.createElement("button"); del.className="icon-btn"; del.textContent="Löschen";
       del.addEventListener("click", function(){
         state.days[editKey].segs.splice(idx,1);
         if(!state.days[editKey].segs.length) leere(editKey);
         save(editKey); renderAll(); });
       row.appendChild(l1); row.appendChild(i1); row.appendChild(l2); row.appendChild(i2);
-      row.appendChild(lk); row.appendChild(ik);
       row.appendChild(s2); row.appendChild(del);
       box.appendChild(row);
+
+      var next = d.segs[idx+1];
+      if(seg.e && (next || (!d.closed && idx === d.segs.length-1))){
+        var pause = document.createElement("div"); pause.className="seg pause-row";
+        var pl = document.createElement("span"); pl.className="lbl"; pl.textContent="Pause";
+        var pv = document.createElement("span"); pv.className="sum";
+        var start = hm2min(seg.e), ende = next ? hm2min(next.s) : nowMin();
+        if(ende < start) ende += 1440;
+        pv.textContent = next
+          ? clock(start)+"–"+clock(ende)+" · "+min2hm(ende-start)
+          : "seit "+clock(start)+" Uhr · "+min2hm(Math.max(0, ende-start));
+        pause.appendChild(pl); pause.appendChild(pv); box.appendChild(pause);
+      }
     });
     renderEditSummary();
   }
@@ -1282,22 +1271,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       list.appendChild(row);
     });
 
-    var msplit = document.getElementById("monthSplit");
-    msplit.textContent = "";
-    var pm = projekte(keys);
-    if(!pm.length){
-      var leer = document.createElement("span"); leer.className = "empty";
-      leer.textContent = "Noch keine Zeiten erfasst.";
-      msplit.appendChild(leer);
-    }
-    pm.forEach(function(pr){
-      var c = document.createElement("span"); c.className = "chip";
-      c.appendChild(document.createTextNode(komLabel(pr.k) + " "));
-      var b = document.createElement("b"); b.textContent = min2hm(pr.min);
-      c.appendChild(b);
-      msplit.appendChild(c);
-    });
-
     var tot=0, nd=0;
     Object.keys(state.days).forEach(function(k){
       if(hasTimes(state.days[k])){ tot += netMin(k)-targetMin(); nd++; }
@@ -1334,7 +1307,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     document.getElementById("clockUnit").textContent = running
       ? "Std. gearbeitet — läuft" : "Std. gearbeitet heute";
     if(hasTimes(d) && !d.closed){
-      renderTiles(); renderStamp(); renderKomm();
+      renderTiles(); renderStamp();
       if(!running){
         var last = d.segs[d.segs.length-1];
         if(last && last.e){
@@ -1372,25 +1345,13 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       var bs = buchStart(k), be = buchEnde(k);
       var net = netMin(k), pa = pauseMin(k) + abzugMin(k);
       ist += net; pausen += pa; if(hasTimes(d)) soll += targetMin();
-      var teile = projekte([k]).filter(function(pr){ return pr.min >= 0.5; })
-        .map(function(pr){ return esc(komLabel(pr.k)) + " " + min2hm(pr.min); }).join("<br>");
       return "<tr><td class=\"num\">" + pad(dt.getDate()) + "." + pad(dt.getMonth()+1) + "."
         + "</td><td>" + WD[dt.getDay()].slice(0,2)
         + "</td><td class=\"num\">" + (bs !== null ? clock(bs) : "")
         + "</td><td class=\"num\">" + (be !== null ? clock(be) : "offen")
         + "</td><td class=\"num\">" + min2hm(net)
         + "</td><td class=\"num\">" + min2hm(pa)
-        + "</td><td class=\"num\">" + fmtSigned(net - targetMin())
-        + "</td><td>" + teile + "</td></tr>";
-    }).join("");
-
-    var pr = projekte(keys).filter(function(x){ return x.min >= 0.5; });
-    var projZeilen = pr.map(function(x){
-      var anteil = ist > 0 ? Math.round(x.min / ist * 1000)/10 : 0;
-      return "<tr><td>" + esc(komLabel(x.k))
-        + "</td><td class=\"num\">" + min2hm(x.min)
-        + "</td><td class=\"num\">" + dez(x.min)
-        + "</td><td class=\"num\">" + String(anteil).replace(".", ",") + " %</td></tr>";
+        + "</td><td class=\"num\">" + fmtSigned(net - targetMin()) + "</td></tr>";
     }).join("");
 
     var heute = new Date();
@@ -1408,19 +1369,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       + "</div>"
       + "<table><thead><tr><th class=\"num\">Datum</th><th>Tag</th><th class=\"num\">Beginn</th>"
       + "<th class=\"num\">Ende</th><th class=\"num\">Arbeitszeit</th><th class=\"num\">Pause</th>"
-      + "<th class=\"num\">+/&minus;</th><th>Kommissionsnummern</th></tr></thead>"
+      + "<th class=\"num\">+/&minus;</th></tr></thead>"
       + "<tbody>" + zeilen
       + "<tr class=\"sum\"><td colspan=\"4\">Summe (" + keys.length + " Arbeitstage)</td>"
       + "<td class=\"num\">" + min2hm(ist) + "</td>"
       + "<td class=\"num\">" + min2hm(pausen) + "</td>"
-      + "<td class=\"num\">" + fmtSigned(ist - soll) + "</td><td></td></tr>"
-      + "</tbody></table>"
-      + "<h2>Aufteilung nach Kommissionsnummern</h2>"
-      + "<table><thead><tr><th>Kom.-Nr.</th><th class=\"num\">Stunden</th>"
-      + "<th class=\"num\">dezimal</th><th class=\"num\">Anteil</th></tr></thead><tbody>"
-      + projZeilen
-      + "<tr class=\"sum\"><td>Gesamt</td><td class=\"num\">" + min2hm(ist)
-      + "</td><td class=\"num\">" + dez(ist) + "</td><td class=\"num\">100 %</td></tr>"
+      + "<td class=\"num\">" + fmtSigned(ist - soll) + "</td></tr>"
       + "</tbody></table>"
       + "<div class=\"sign\"><div>Datum, Unterschrift Mitarbeiter</div>"
       + "<div>Datum, Unterschrift Vorgesetzter</div></div>";
@@ -1428,7 +1382,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   function monthCsv(){
     var keys = monthKeys(viewMonth.y, viewMonth.m);
-    var out = ["Datum;Wochentag;Kommen;Gehen;Gebucht;Pause;Soll;Differenz;Kommissionsnummern"];
+    var out = ["Datum;Wochentag;Kommen;Gehen;Gebucht;Pause;Soll;Differenz"];
     var ist=0, soll=0;
     keys.forEach(function(k){
       var dt=parseIso(k), d=state.days[k];
@@ -1438,17 +1392,11 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       out.push([pad(dt.getDate())+"."+pad(dt.getMonth()+1)+"."+dt.getFullYear(), WD[dt.getDay()],
         bs!==null?clock(bs):"", be!==null?clock(be):"offen",
         min2hm(net), min2hm(pauseMin(k) + abzugMin(k)), min2hm(targetMin()),
-        fmtSigned(net-targetMin()),
-        projekte([k]).map(function(pr){ return komLabel(pr.k)+"="+min2hm(pr.min); }).join(" | ")
+        fmtSigned(net-targetMin())
       ].join(";"));
     });
     out.push("");
     out.push("Summe;;;;"+min2hm(ist)+";;"+min2hm(soll)+";"+fmtSigned(ist-soll));
-    out.push("");
-    out.push("Kommissionsnummer;Stunden;dezimal");
-    projekte(keys).forEach(function(pr){
-      out.push(komLabel(pr.k)+";"+min2hm(pr.min)+";"+dez(pr.min));
-    });
     return out.join("\n");
   }
 
@@ -1532,7 +1480,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var d = day(editKey, true);
     var last = d.segs.length ? d.segs[d.segs.length-1] : null;
     var start = last && last.e ? last.e : (editKey === todayKey() ? nowHM() : "09:00");
-    d.segs.push({ s:start, e:start, k: last ? kom(last) : (state.settings.lastK || "") });
+    d.segs.push({ s:start, e:start });
     save(editKey); renderAll();
   });
   document.getElementById("prevMonth").addEventListener("click", function(){
@@ -1540,15 +1488,6 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   });
   document.getElementById("nextMonth").addEventListener("click", function(){
     viewMonth.m++; if(viewMonth.m>11){ viewMonth.m=0; viewMonth.y++; } renderMonth();
-  });
-  document.getElementById("btnKommAdd").addEventListener("click", legeAn);
-  document.getElementById("btnKommAbbr").addEventListener("click", function(){
-    document.getElementById("kommNeu").value = "";
-    document.getElementById("kommAdd").hidden = true;
-  });
-  document.getElementById("kommNeu").addEventListener("keydown", function(e){
-    if(e.key === "Enter"){ e.preventDefault(); legeAn(); }
-    if(e.key === "Escape"){ this.value = ""; document.getElementById("kommAdd").hidden = true; }
   });
   document.getElementById("setName").addEventListener("change", function(e){
     state.settings.name = e.target.value.trim(); saveSettings();
