@@ -140,6 +140,9 @@ section.panel{background:var(--surface);border:1px solid var(--line);border-radi
 .seg .sum{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:14px;color:var(--muted);margin-left:auto}
 .seg.open{border-color:color-mix(in srgb, var(--run) 45%, var(--line));background:var(--run-soft)}
 .seg.pause-row{border-color:color-mix(in srgb, var(--pause) 45%, var(--line));background:var(--pause-soft)}
+.day-target{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);font-size:13px;color:var(--muted)}
+.day-target label{font-weight:600;color:var(--ink)}
+.day-target input{width:72px;font:600 14px "IBM Plex Mono",monospace;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:5px 7px;text-align:right}
 input[type="time"],input[type="date"],input[type="number"]{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);color-scheme:light dark}
 input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .icon-btn{padding:5px 9px;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border-color:transparent}
@@ -339,6 +342,10 @@ footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
       <div><span class="k">Pause</span><span class="v" id="dPause">0:00</span></div>
       <div><span class="k">Differenz zum Soll</span><span class="v" id="dDiff">0:00</span></div>
     </div>
+    <div class="day-target">
+      <label for="todayTarget">Anvisiertes Ziel heute</label>
+      <span><input type="number" id="todayTarget" min="0" max="24" step="0.25"> Stunden</span>
+    </div>
   </div>
 
   <section class="panel">
@@ -537,6 +544,12 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   var MN=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 
   function targetMin(){ return Math.round(state.settings.targetH*60); }
+  /* Dieses Ziel steuert nur die Empfehlung zum Ausstempeln, nicht Soll oder Saldo. */
+  function zielMin(key){
+    var d = state.days[key];
+    var h = d && typeof d.zielH === "number" ? d.zielH : state.settings.targetH;
+    return Math.round(h*60);
+  }
   function todayKey(){ return iso(new Date()); }
   function day(key, create){ if(!state.days[key] && create) state.days[key]={segs:[],closed:false}; return state.days[key]; }
   function hasTimes(d){ return !!(d && d.segs && d.segs.length); }
@@ -631,7 +644,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   /* Gestempelte Zeit, die noetig ist, damit nach Pausenabzug das Soll steht. */
   function neededBooked(key){
-    var t = targetMin(), taken = pauseLive(key);
+    var t = zielMin(key), taken = pauseLive(key);
     var stufen = [[0,0],[210,15],[360,30],[420,45]];
     for(var i=0;i<stufen.length;i++){
       var brutto = t + Math.max(0, stufen[i][1] - taken);
@@ -1120,7 +1133,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
         + "  =  " + min2hm(gebucht) + " Std. Arbeitszeit";
     } else {
       var ziel = stampOutAt(k);
-      var fehlt = Math.round(Math.max(0, neededBooked(k) - targetMin()));
+      var fehlt = Math.round(Math.max(0, neededBooked(k) - zielMin(k)));
       var rest = ziel !== null ? ziel - nowMin() : 0;
       lab.textContent = rest > 0 ? "Ausstempeln um" : "Feierabend möglich seit";
       val.textContent = (ziel !== null ? clock(ziel) : "--:--") + " Uhr";
@@ -1132,6 +1145,8 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   function renderTiles(){
     var k = todayKey(), d = state.days[k], net = netMin(k);
+    var ziel = document.getElementById("todayTarget");
+    if(document.activeElement !== ziel) ziel.value = zielMin(k) / 60;
     document.getElementById("dNet").textContent = min2hm(net);
     document.getElementById("dPause").textContent = min2hm(pauseMin(k) + pflichtOffen(k));
     var diff = document.getElementById("dDiff");
@@ -1469,6 +1484,15 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
   document.getElementById("btnPrimary").addEventListener("click", primaryAction);
   document.getElementById("btnEnd").addEventListener("click", endDay);
+  document.getElementById("todayTarget").addEventListener("change", function(e){
+    var v = parseFloat(String(e.target.value).replace(",", "."));
+    if(isNaN(v)){ renderTiles(); return; }
+    v = Math.min(24, Math.max(0, v));
+    var k = todayKey(), d = day(k, true);
+    if(v === state.settings.targetH) delete d.zielH;
+    else d.zielH = v;
+    save(k); renderAll();
+  });
   document.getElementById("editDate").addEventListener("change", function(e){
     if(!e.target.value){ e.target.value = editKey; return; }
     editKey = e.target.value;
