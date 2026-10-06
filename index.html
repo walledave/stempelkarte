@@ -1286,21 +1286,34 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
       list.appendChild(row);
     });
 
-    var tot=0, nd=0;
+    var tot=0;
     Object.keys(state.days).forEach(function(k){
-      if(hasTimes(state.days[k])){ tot += netMin(k)-targetMin(); nd++; }
+      if(hasTimes(state.days[k])) tot += netMin(k)-targetMin();
     });
     tot += state.settings.carryH*60;
     var cap = state.settings.capH*60;
     var account = tot, payout = 0;
-    if(cap > 0 && tot > cap){ account = cap; payout = tot-cap; }
+    if(cap > 0){
+      /* Auszahlung nur fuer den Ueberschuss, der in diesem Monat neu entsteht.
+         Bereits in vergangenen Monaten angefallene Auszahlung wird nicht erneut
+         in die Monatsansicht eingerechnet. */
+      var vorMonat = state.settings.carryH*60;
+      var monatStart = viewMonth.y+"-"+pad(viewMonth.m+1)+"-01";
+      Object.keys(state.days).forEach(function(k){
+        if(k < monatStart && hasTimes(state.days[k])) vorMonat += netMin(k)-targetMin();
+      });
+      var auszahlungVorher = Math.max(0, vorMonat-cap);
+      var auszahlungNachher = Math.max(0, vorMonat+(ist-soll)-cap);
+      payout = Math.max(0, auszahlungNachher-auszahlungVorher);
+      if(tot > cap) account = cap;
+    }
     var to=document.getElementById("totalOver");
     to.textContent = fmtSigned(account);
     to.className = "v " + (account >= 0 ? "pos" : "negv");
     var pt=document.getElementById("payoutTile");
     pt.hidden = !(cap > 0);
     document.getElementById("payout").textContent = min2hm(payout);
-    document.getElementById("totalDays").textContent = nd;
+    document.getElementById("totalDays").textContent = keys.length;
   }
 
   function renderSettings(){
