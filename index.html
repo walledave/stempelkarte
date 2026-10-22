@@ -143,6 +143,8 @@ section.panel{background:var(--surface);border:1px solid var(--line);border-radi
 .day-target{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--surface-2);font-size:13px;color:var(--muted)}
 .day-target label{font-weight:600;color:var(--ink)}
 .day-target input{width:72px;font:600 14px "IBM Plex Mono",monospace;color:var(--ink);background:var(--surface);border:1px solid var(--line-strong);border-radius:6px;padding:5px 7px;text-align:right}
+.day-target .forecast{font-size:12px;color:var(--muted);white-space:nowrap}
+.day-target .forecast b{font-family:"IBM Plex Mono",monospace;font-size:14px;margin-left:4px}
 input[type="time"],input[type="date"],input[type="number"]{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:14px;padding:5px 7px;border:1px solid var(--line-strong);border-radius:6px;background:var(--surface);color:var(--ink);color-scheme:light dark}
 input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .icon-btn{padding:5px 9px;font-size:13px;font-weight:500;color:var(--muted);background:transparent;border-color:transparent}
@@ -345,6 +347,7 @@ footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
     <div class="day-target">
       <label for="todayTarget">Anvisiertes Ziel heute</label>
       <span><input type="number" id="todayTarget" min="0" max="24" step="0.25"> Stunden</span>
+      <span class="forecast" id="mForecastTile">Vrs. Saldo Monat <b id="mForecast">0:00</b></span>
     </div>
   </div>
 
@@ -363,7 +366,6 @@ footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
           <div><span class="k">Arbeitszeit</span><span class="v" id="mIst">0:00</span></div>
           <div><span class="k">Soll</span><span class="v" id="mSoll">0:00</span></div>
           <div><span class="k">Saldo Monat</span><span class="v" id="mDiff">0:00</span></div>
-          <div id="mForecastTile"><span class="k">Vrs. Saldo Monat</span><span class="v" id="mForecast">0:00</span></div>
         </div>
         <div class="days" id="dayList"></div>
         <div class="tiles">
@@ -1258,15 +1260,21 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     var md=document.getElementById("mDiff");
     md.textContent = fmtSigned(ist-soll);
     md.className = "v " + (ist-soll >= 0 ? "pos" : "negv");
-    var istAktuellerMonat = viewMonth.y === new Date().getFullYear() && viewMonth.m === new Date().getMonth();
+    var jetzt = new Date();
+    var istAktuellerMonat = viewMonth.y === jetzt.getFullYear() && viewMonth.m === jetzt.getMonth();
     var forecastTile = document.getElementById("mForecastTile");
-    forecastTile.hidden = !istAktuellerMonat;
-    if(istAktuellerMonat){
-      var prognose = ist - soll + zielMin(heute) - targetMin();
-      var forecast = document.getElementById("mForecast");
-      forecast.textContent = fmtSigned(prognose);
-      forecast.className = "v " + (prognose >= 0 ? "pos" : "negv");
+    var prognoseIst = ist, prognoseSoll = soll;
+    if(!istAktuellerMonat){
+      prognoseIst = 0; prognoseSoll = 0;
+      monthKeys(jetzt.getFullYear(), jetzt.getMonth()).forEach(function(k){
+        if(k !== heute){ prognoseIst += netMin(k); prognoseSoll += targetMin(); }
+      });
     }
+    var prognose = prognoseIst - prognoseSoll + zielMin(heute) - targetMin();
+    forecastTile.hidden = false;
+    var forecast = document.getElementById("mForecast");
+    forecast.textContent = fmtSigned(prognose);
+    forecast.className = prognose >= 0 ? "pos" : "negv";
 
     var list=document.getElementById("dayList"); list.textContent="";
     if(!keys.length){
