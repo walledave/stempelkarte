@@ -363,6 +363,7 @@ footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
           <div><span class="k">Arbeitszeit</span><span class="v" id="mIst">0:00</span></div>
           <div><span class="k">Soll</span><span class="v" id="mSoll">0:00</span></div>
           <div><span class="k">Saldo Monat</span><span class="v" id="mDiff">0:00</span></div>
+          <div id="mForecastTile"><span class="k">Vrs. Saldo Monat</span><span class="v" id="mForecast">0:00</span></div>
         </div>
         <div class="days" id="dayList"></div>
         <div class="tiles">
@@ -1246,13 +1247,26 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   }
   function renderMonth(){
     document.getElementById("monthTitle").textContent = MN[viewMonth.m]+" "+viewMonth.y;
-    var keys = monthKeys(viewMonth.y, viewMonth.m), ist=0, soll=0;
+    var heute = todayKey();
+    /* Die Monatsbilanz enthält nur abgeschlossene, vergangene Tage.
+       Heute erscheint separat als Vorschau über das anvisierte Ziel. */
+    var keys = monthKeys(viewMonth.y, viewMonth.m).filter(function(k){ return k !== heute; });
+    var ist=0, soll=0;
     keys.forEach(function(k){ ist += netMin(k); if(hasTimes(state.days[k])) soll += targetMin(); });
     document.getElementById("mIst").textContent = min2hm(ist);
     document.getElementById("mSoll").textContent = min2hm(soll);
     var md=document.getElementById("mDiff");
     md.textContent = fmtSigned(ist-soll);
     md.className = "v " + (ist-soll >= 0 ? "pos" : "negv");
+    var istAktuellerMonat = viewMonth.y === new Date().getFullYear() && viewMonth.m === new Date().getMonth();
+    var forecastTile = document.getElementById("mForecastTile");
+    forecastTile.hidden = !istAktuellerMonat;
+    if(istAktuellerMonat){
+      var prognose = ist - soll + zielMin(heute) - targetMin();
+      var forecast = document.getElementById("mForecast");
+      forecast.textContent = fmtSigned(prognose);
+      forecast.className = "v " + (prognose >= 0 ? "pos" : "negv");
+    }
 
     var list=document.getElementById("dayList"); list.textContent="";
     if(!keys.length){
@@ -1288,7 +1302,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
 
     var tot=0;
     Object.keys(state.days).forEach(function(k){
-      if(hasTimes(state.days[k])) tot += netMin(k)-targetMin();
+      if(k !== heute && hasTimes(state.days[k])) tot += netMin(k)-targetMin();
     });
     tot += state.settings.carryH*60;
     var cap = state.settings.capH*60;

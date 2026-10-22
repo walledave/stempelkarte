@@ -1,6 +1,6 @@
 /* Service Worker: macht die Stempelkarte offline verfuegbar.
    Bei jeder neuen Version die Zahl in CACHE erhoehen. */
-const CACHE = "stempelkarte-v7";
+const CACHE = "stempelkarte-v8";
 const DATEIEN = ["./", "./index.html", "./manifest.webmanifest",
                  "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
