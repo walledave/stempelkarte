@@ -413,7 +413,7 @@ footer{font-size:12px;color:var(--muted);text-align:center;line-height:1.7}
         <div class="field">
           <label>Pausenregelung</label>
           <span class="in">fest hinterlegt</span>
-          <span class="desc">Ab 3,5 Std. 15 Min., ab 6 Std. 30 Min., ab 7 Std. 45 Min. Eigene Pausen werden angerechnet.</span>
+          <span class="desc">Ab 3,5 Std.: 15 Min., ab 6 Std. 15 Min.: 30 Min., ab 7 Std.: 45 Min. Eigene Pausen werden angerechnet.</span>
         </div>
         <div class="field">
           <label for="setCarry">Überstunden-Startsaldo</label>
@@ -614,9 +614,9 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
     }
     return out;
   }
-  /* Pausenregelung Müller & Sohn: ab 3,5 Std. 15 Min., ab 6 Std. 30 Min.,
+  /* Pausenregelung Müller & Sohn: ab 3,5 Std. 15 Min., ab 6:15 Std. 30 Min.,
      ab 7 Std. 45 Min. Selbst gestempelte Pausen werden angerechnet. */
-  var PAUSENREGEL = [[420, 45], [360, 30], [210, 15]];
+  var PAUSENREGEL = [[420, 45], [375, 30], [210, 15]];
   function pflichtPause(arbeitMin){
     for(var i=0;i<PAUSENREGEL.length;i++){
       if(arbeitMin >= PAUSENREGEL[i][0]) return PAUSENREGEL[i][1];
@@ -648,7 +648,7 @@ var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],
   /* Gestempelte Zeit, die noetig ist, damit nach Pausenabzug das Soll steht. */
   function neededBooked(key){
     var t = zielMin(key), taken = pauseLive(key);
-    var stufen = [[0,0],[210,15],[360,30],[420,45]];
+    var stufen = [[0,0],[210,15],[375,30],[420,45]];
     for(var i=0;i<stufen.length;i++){
       var brutto = t + Math.max(0, stufen[i][1] - taken);
       var lo = stufen[i][0];
